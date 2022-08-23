@@ -67,8 +67,13 @@ class _ItemMainState extends State<ItemMain> {
   Widget futureBuilder(BuildContext context, AsyncSnapshot<List<ItemDTO>> snapshot) {
     if (snapshot.hasData) {
       _items = snapshot.data!;
+      // sets _expanded only for first data fetch from api
       _expanded ??= List.filled(_items!.length, false, growable: true);
-      return ItemExpansionList(items: _items, onExpanded: onExpanded, expandedList: _expanded);
+      return ItemExpansionList(
+          items: _items,
+          onExpanded: onExpanded,
+          onItemDelete: onItemDeleted,
+          expandedList: _expanded);
     } else if (snapshot.hasError) {
       return Text("Error: ${snapshot.error}");
     }
@@ -78,23 +83,38 @@ class _ItemMainState extends State<ItemMain> {
   }
 
   void onAddButtonPressed() async {
-      Future<ItemDTO?> createdItem = showDialog<ItemDTO>(
-        context: context,
-        builder: (context) {
-          return AddItemPopup(itemService: itemService);
-        },
-      );
-      createdItem.then((value) {
-        setState(() {
-          if (value != null) _items!.add(value);
-          // this will be processed by FutureBuilder so UI can be drawn
-          _itemsFuture = Future.value(_items);
-          // if some new item was added then it is as last item on list
-          // add it to _expanded register
-          if (_expanded!.length != _items!.length) {
-            _expanded!.addAll(List.filled((_items!.length - _expanded!.length).abs(), false));
-          }
-        });
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text("Saving")));
+    Future<ItemDTO?> createdItem = showDialog<ItemDTO>(
+      context: context,
+      builder: (context) {
+        return AddItemPopup(itemService: itemService);
+      },
+    );
+    createdItem.then((value) {
+      setState(() {
+        if (value != null) _items!.add(value);
+        // this will be processed by FutureBuilder so UI can be drawn
+        _itemsFuture = Future.value(_items);
+        // if some new item was added then it is as last item on list
+        // add it to _expanded register
+        if (_expanded!.length != _items!.length) {
+          _expanded!.addAll(
+              List.filled((_items!.length - _expanded!.length).abs(), false));
+        }
       });
+    });
+  }
+
+  void onItemDeleted(ItemDTO item) {
+    itemService.delete(item).then((value) {
+      int idx = _items!.indexOf(item);
+      if (idx >= 0) {
+        setState(() {
+          _items!.remove(item);
+          _expanded!.removeAt(idx);
+        });
+      }
+    });
   }
 }
