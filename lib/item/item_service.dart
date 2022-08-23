@@ -18,16 +18,22 @@ class ItemService {
 
   Future<ItemDTO> saveItem(ItemDTO item) async {
     Response<ItemDTO> response = await _getApi().itemsPost(body: item);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Saving")));
     return _resolveResponse(response) as ItemDTO;
+  }
+
+  Future<void> delete(ItemDTO item) async {
+    Response<dynamic> response = await _getApi().itemsIdDelete(id: item.id);
+    _resolveResponse(response);
+    return Future.value();
   }
 
   Object _resolveResponse(Response response) {
     if (response.isSuccessful) {
-      return response.body!;
-    }
-    else {
-      throw ApiException(reason: response.error.toString(), code: response.statusCode.toString());
+      return response.body ?? "";
+    } else {
+      throw ApiException(
+          reason: response.error.toString(),
+          code: response.statusCode.toString());
     }
   }
 
