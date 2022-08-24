@@ -1,47 +1,27 @@
 import 'package:chopper/chopper.dart';
 import 'package:flutter/material.dart';
-import 'package:indexer_client/common/exceptions/ApiException.dart';
-import 'package:provider/provider.dart';
+import 'package:indexer_client/common/dto_service.dart';
 
 import '../api/api_spec.swagger.dart';
-import '../state.dart';
 
-class ItemService {
-  final BuildContext context;
-
-  ItemService({required this.context});
+class ItemService extends DTOService {
+  ItemService({required super.context});
 
   Future<List<ItemDTO>> getAllItems() async {
-    Response<List<ItemDTO>> response = await _getApi().itemsGet();
-    return _resolveResponse(response) as List<ItemDTO>;
+    Response<List<ItemDTO>> response = await getApi().itemsGet();
+    return resolveResponse(response) as List<ItemDTO>;
   }
 
   Future<ItemDTO> saveItem(ItemDTO item) async {
-    Response<ItemDTO> response = await _getApi().itemsPost(body: item);
-    return _resolveResponse(response) as ItemDTO;
+    Response<ItemDTO> response = await getApi().itemsPost(body: item);
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text("Saving")));
+    return resolveResponse(response) as ItemDTO;
   }
 
   Future<void> delete(ItemDTO item) async {
-    Response<dynamic> response = await _getApi().itemsIdDelete(id: item.id);
-    _resolveResponse(response);
+    Response<dynamic> response = await getApi().itemsIdDelete(id: item.id);
+    resolveResponse(response);
     return Future.value();
-  }
-
-  Object _resolveResponse(Response response) {
-    if (response.isSuccessful) {
-      return response.body ?? "";
-    } else {
-      throw ApiException(
-          reason: response.error.toString(),
-          code: response.statusCode.toString());
-    }
-  }
-
-  ApiSpec _getApi() {
-    var client = ChopperClient(
-        services: [ApiSpec.create()],
-        converter: $JsonSerializableConverter(),
-        baseUrl: Provider.of<AppState>(context, listen: false).serverAddress ?? "");
-    return client.getService<ApiSpec>();
   }
 }
