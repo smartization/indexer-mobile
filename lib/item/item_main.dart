@@ -6,6 +6,7 @@ import 'package:indexer_client/state.dart';
 import 'package:provider/provider.dart';
 
 import '../api/api_spec.swagger.dart';
+import '../common/exceptions/ApiException.dart';
 import '../drawer/drawer.dart';
 import 'item_expansion_list.dart';
 
@@ -115,6 +116,9 @@ class _ItemMainState extends State<ItemMain> {
           _expanded!.removeAt(idx);
         });
       }
-    });
+    }).catchError((error, stackTrace) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text((error as ApiException).reason)));
+    }, test: (o) => o is ApiException);
   }
 }
