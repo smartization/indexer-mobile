@@ -66,7 +66,9 @@ class AddItemPopup extends StatelessWidget {
         storagePlace: place
       );
       try {
-        itemService.saveItem(item).then((value) => Navigator.pop(context, item));
+        itemService
+            .saveItem(item)
+            .then((value) => Navigator.pop(context, value));
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
         Navigator.pop(context);
