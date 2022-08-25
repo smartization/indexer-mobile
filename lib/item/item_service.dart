@@ -24,4 +24,9 @@ class ItemService extends DTOService {
     resolveResponse(response);
     return Future.value();
   }
+
+  Future<ItemDTO> updateItem(ItemDTO item) async {
+    Response<ItemDTO> response = await getApi().itemsIdPut(body: item);
+    return resolveResponse(response) as ItemDTO;
+  }
 }
