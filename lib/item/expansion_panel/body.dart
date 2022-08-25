@@ -5,8 +5,14 @@ import '../../api/api_spec.swagger.dart';
 class ItemExpansionPanelBody extends StatelessWidget {
   final ItemDTO item;
   final Function(ItemDTO) onDelete;
+  final Function(ItemDTO) onEdit;
 
-  const ItemExpansionPanelBody({Key? key, required this.item, required this.onDelete}) : super(key: key);
+  const ItemExpansionPanelBody(
+      {Key? key,
+      required this.item,
+      required this.onDelete,
+      required this.onEdit})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +21,10 @@ class ItemExpansionPanelBody extends StatelessWidget {
         child: Column(
           children: [
             _ItemTable(item: item),
-            _BottomButtons(onDelete: () => onDelete(item))
+            _BottomButtons(
+              onDelete: () => onDelete(item),
+              onEdit: () => onEdit(item),
+            )
           ],
         )
     );
@@ -72,30 +81,45 @@ class _ItemTable extends StatelessWidget {
 
 class _BottomButtons extends StatelessWidget {
   final VoidCallback onDelete;
+  final VoidCallback onEdit;
 
-  const _BottomButtons({required this.onDelete});
+  const _BottomButtons({required this.onDelete, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Ink(
-            width: 40,
-            height: 40,
-            decoration: const ShapeDecoration(
-              color: Colors.redAccent,
-              shape: CircleBorder()
+        margin: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Ink(
+                width: 40,
+                height: 40,
+                decoration: const ShapeDecoration(
+                  color: Colors.redAccent,
+                  shape: CircleBorder(),
+                ),
+                child: IconButton(
+                    onPressed: onDelete,
+                    iconSize: 20,
+                    icon: const Icon(
+                      Icons.delete,
+                    )),
+              ),
             ),
-            child: IconButton(
-                onPressed: onDelete,
-                iconSize: 20,
-                icon: const Icon(Icons.delete, )
-            ),
-          )
-        ],
+            Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Ink(
+                  width: 40,
+                  height: 40,
+                  decoration: const ShapeDecoration(
+                      shape: CircleBorder(), color: Colors.blue),
+                  child: IconButton(
+                      onPressed: onEdit, icon: const Icon(Icons.edit)),
+                ))
+          ],
       )
     );
   }}
