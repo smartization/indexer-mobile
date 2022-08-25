@@ -7,6 +7,7 @@ class ItemExpansionList extends StatelessWidget {
   final List<ItemDTO> items;
   final ExpansionPanelCallback? onExpanded;
   final Function(ItemDTO) onItemDelete;
+  final Function(ItemDTO) onItemEdited;
   final List<bool> expandedList;
 
   const ItemExpansionList(
@@ -14,7 +15,8 @@ class ItemExpansionList extends StatelessWidget {
       required items,
       this.onExpanded,
       expandedList,
-      required this.onItemDelete})
+      required this.onItemDelete,
+      required this.onItemEdited})
       : expandedList = expandedList ?? const [],
         items = items ?? const [],
         super(key: key);
@@ -30,8 +32,8 @@ class ItemExpansionList extends StatelessWidget {
   }
 
   List<ExpansionPanel> generateChildren() {
-    return items.asMap().entries.map((e) =>
-            ItemExpansionPanel.from(e.value, expandedList[e.key], onItemDelete))
+    return items.asMap().entries.map((e) => ItemExpansionPanel.from(
+            e.value, expandedList[e.key], onItemDelete, onItemEdited))
         .toList();
   }
 }
