@@ -11,8 +11,8 @@ class ItemExpansionPanel extends ExpansionPanel {
       super.isExpanded,
       super.canTapOnHeader});
 
-  ItemExpansionPanel.from(
-      ItemDTO item, bool isExpanded, Function(ItemDTO) onItemDelete)
+  ItemExpansionPanel.from(ItemDTO item, bool isExpanded,
+      Function(ItemDTO) onItemDelete, Function(ItemDTO) onEdit)
       : this(
             headerBuilder: (ctx, isExpanded) => ItemExpansionPanelHeader(
                   item: item,
@@ -21,6 +21,7 @@ class ItemExpansionPanel extends ExpansionPanel {
             body: ItemExpansionPanelBody(
               item: item,
               onDelete: onItemDelete,
+              onEdit: onEdit,
             ),
             isExpanded: isExpanded,
             canTapOnHeader: true);
