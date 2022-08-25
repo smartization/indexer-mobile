@@ -74,6 +74,7 @@ class _ItemMainState extends State<ItemMain> {
           items: _items,
           onExpanded: onExpanded,
           onItemDelete: onItemDeleted,
+          onItemEdited: onItemEdited,
           expandedList: _expanded);
     } else if (snapshot.hasError) {
       return Text("Error: ${snapshot.error}");
@@ -89,7 +90,10 @@ class _ItemMainState extends State<ItemMain> {
     Future<ItemDTO?> createdItem = showDialog<ItemDTO>(
       context: context,
       builder: (context) {
-        return AddItemPopup(itemService: itemService);
+        return ModifyItemPopup(
+          itemService: itemService,
+          addNew: true,
+        );
       },
     );
     createdItem.then((value) {
@@ -117,6 +121,31 @@ class _ItemMainState extends State<ItemMain> {
         });
       }
     }).catchError((error, stackTrace) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text((error as ApiException).reason)));
+    }, test: (o) => o is ApiException);
+  }
+
+  onItemEdited(ItemDTO item) {
+    Future<ItemDTO?> editedItem = showDialog<ItemDTO>(
+        context: context,
+        builder: (ctx) => ModifyItemPopup(
+              itemService: itemService,
+              addNew: false,
+              item: item,
+            ));
+    editedItem.then((value) {
+      if (value != null) {
+        int idx = _items!.indexOf(item);
+        setState(() {
+          _items!.removeAt(idx);
+          _items!.insert(idx, value);
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Item was not changed")));
+      }
+    }).onError((error, stackTrace) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text((error as ApiException).reason)));
     }, test: (o) => o is ApiException);
