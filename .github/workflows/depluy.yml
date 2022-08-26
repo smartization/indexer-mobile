@@ -54,6 +54,12 @@ jobs:
             echo "storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> android/key.properties
             echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/key.properties
             echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/key.properties
+            
+        - name: Create local.properties
+          run: |
+            echo "flutter.versionCode=${{ github.run_number }}" > android/local.properties
+            echo "flutter.versionName=1.0.0" > android/local.properties
+            
         - name: Build Android App Bundle
           run: flutter build appbundle
 
