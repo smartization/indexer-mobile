@@ -61,7 +61,7 @@ jobs:
             echo "flutter.versionName=${{ github.run_number }}${{ github.run_attempt }}" >> android/local.properties
             
         - name: Build Android App Bundle
-          run: flutter build appbundle --build-number="${{ github.run_number }}${{ github.run_attempt }}"
+          run: flutter build appbundle --build-number="${{ github.run_number }}${{ github.run_attempt }}" --build-name="${{ github.run_number }}${{ github.run_attempt }}"
 
         - name: Setup Ruby
           uses: actions/setup-ruby@v1
