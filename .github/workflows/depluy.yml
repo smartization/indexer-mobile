@@ -57,8 +57,8 @@ jobs:
             
         - name: Create local.properties
           run: |
-            echo "flutter.versionCode=${{ github.run_number }}" >> android/local.properties
-            echo "flutter.versionName=1.0.0" >> android/local.properties
+            echo "flutter.versionCode=${{ github.run_number }}${{ github.run_attempt }}" >> android/local.properties
+            echo "flutter.versionName=${{ github.run_number }}${{ github.run_attempt }}" >> android/local.properties
             
         - name: Build Android App Bundle
           run: flutter build appbundle
