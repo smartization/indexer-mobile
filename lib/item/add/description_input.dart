@@ -11,6 +11,8 @@ class ItemDescriptionInput extends StatelessWidget {
       decoration: const InputDecoration(
         labelText: "Description",
       ),
+      minLines: 1,
+      maxLines: null,
       controller: controller,
       keyboardType: TextInputType.multiline,
     );
