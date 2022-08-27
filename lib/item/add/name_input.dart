@@ -9,9 +9,9 @@ class ItemNameTextInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      decoration: const InputDecoration(
-        labelText: "Name"
-      ),
+      decoration: const InputDecoration(labelText: "Name"),
+      minLines: 1,
+      maxLines: null,
       controller: controller,
     );
   }

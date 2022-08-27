@@ -7,20 +7,29 @@ import 'package:indexer_client/item/add/place_input.dart';
 
 import '../../api/api_spec.swagger.dart';
 import '../../common/exceptions/ApiException.dart';
+import '../barcode_service.dart';
 import '../item_service.dart';
 
 class ModifyItemPopup extends StatefulWidget {
   final bool addNew;
   final ItemService itemService;
+  final BarcodeService barcodeService;
   final ItemDTO? item;
 
-  ModifyItemPopup(
-      {Key? key, required this.itemService, required this.addNew, this.item})
+  const ModifyItemPopup(
+      {Key? key,
+      required this.itemService,
+      required this.barcodeService,
+      required this.addNew,
+      this.item})
       : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _ModifyItemPopupState(
-      itemService: itemService, addNew: addNew, item: item);
+      itemService: itemService,
+      barcodeService: barcodeService,
+      addNew: addNew,
+      item: item);
 }
 
 class _ModifyItemPopupState extends State<ModifyItemPopup> {
@@ -30,12 +39,16 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
   final TextEditingController descriptionController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey();
   final ItemService itemService;
+  final BarcodeService barcodeService;
   final bool addNew;
   PlaceDTO? _selectedPlace;
   ItemDTO? item;
 
   _ModifyItemPopupState(
-      {required this.itemService, required this.addNew, this.item});
+      {required this.itemService,
+      required this.barcodeService,
+      required this.addNew,
+      this.item});
 
   @override
   void initState() {
@@ -89,11 +102,25 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
                   ),
                   Container(
                     margin: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                    child: ElevatedButton(
-                        onPressed: () {
-                          onSubmit(context);
-                        },
-                        child: const Text("Submit")),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          child: ElevatedButton(
+                              onPressed: () {
+                                onSubmit(context);
+                              },
+                              child: const Text("Submit")),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          child: ElevatedButton(
+                              onPressed: getSuggestion,
+                              child: const Text("Suggest inputs")),
+                        )
+                      ],
+                    ),
                   )
                 ],
               )),
@@ -142,6 +169,28 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
       setState(() {
         _selectedPlace = place;
       });
+    }
+  }
+
+  void getSuggestion() async {
+    String barcode = barcodeController.text;
+    if (barcode.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Cannot suggest, barcode is empty")));
+    } else {
+      try {
+        BarcodeDTO barcodeDTO = await barcodeService.getSuggestion(barcode);
+        if (barcodeDTO.title != null) {
+          nameController.text = barcodeDTO.title!;
+        }
+        if (barcodeDTO.link != null) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text("Data obtained from: ${barcodeDTO.link}")));
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Exception ${e.toString()}")));
+      }
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:indexer_client/common/loading_indicator.dart';
 import 'package:indexer_client/item/add/add_item_popup.dart';
+import 'package:indexer_client/item/barcode_service.dart';
 import 'package:indexer_client/item/item_service.dart';
 import 'package:indexer_client/state.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +21,7 @@ class ItemMain extends StatefulWidget {
 class _ItemMainState extends State<ItemMain> {
   List<bool>? _expanded;
   late ItemService itemService;
+  late BarcodeService barcodeService;
   late Future<List<ItemDTO>> _itemsFuture;
   List<ItemDTO>? _items;
 
@@ -27,6 +29,7 @@ class _ItemMainState extends State<ItemMain> {
   void initState() {
     super.initState();
     itemService = ItemService(context: context);
+    barcodeService = BarcodeService(context: context);
     _itemsFuture = itemService.getAllItems();
   }
 
@@ -85,13 +88,12 @@ class _ItemMainState extends State<ItemMain> {
   }
 
   void onAddButtonPressed() async {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text("Saving")));
     Future<ItemDTO?> createdItem = showDialog<ItemDTO>(
       context: context,
       builder: (context) {
         return ModifyItemPopup(
           itemService: itemService,
+          barcodeService: barcodeService,
           addNew: true,
         );
       },
@@ -106,6 +108,8 @@ class _ItemMainState extends State<ItemMain> {
         if (_expanded!.length != _items!.length) {
           _expanded!.addAll(
               List.filled((_items!.length - _expanded!.length).abs(), false));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text("Saving")));
         }
       });
     });
@@ -130,7 +134,8 @@ class _ItemMainState extends State<ItemMain> {
     Future<ItemDTO?> editedItem = showDialog<ItemDTO>(
         context: context,
         builder: (ctx) => ModifyItemPopup(
-              itemService: itemService,
+          itemService: itemService,
+              barcodeService: barcodeService,
               addNew: false,
               item: item,
             ));
@@ -141,6 +146,8 @@ class _ItemMainState extends State<ItemMain> {
           _items!.removeAt(idx);
           _items!.insert(idx, value);
         });
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Saving")));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Item was not changed")));
