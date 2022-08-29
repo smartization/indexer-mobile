@@ -1,16 +1,13 @@
 # indexer_client
 
-A new Flutter project.
+Is a simple mobile app used to manage indexer server. It allows to add, remove and edit items. It brings easy way to manage your inventory in one place.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Technologies
+```
+  cupertino_icons: ^1.0.2
+  shared_preferences: ^2.0.15
+  provider: ^6.0.3
+  chopper: ^4.0.1
+  json_annotation: ^4.4.0
+  flutter_barcode_scanner: ^2.0.0
+```
