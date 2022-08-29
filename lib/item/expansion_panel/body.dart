@@ -39,43 +39,82 @@ class _ItemTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Table(
+      border: const TableBorder(
+          bottom: BorderSide(color: Colors.grey),
+          horizontalInside: BorderSide(color: Colors.grey)),
       children: [
+        TableRow(children: [
+          const Text("Name",
+              style: TextStyle(fontWeight: FontWeight.bold, height: 3)),
+          Text(
+            item.name,
+            style: const TextStyle(
+              height: 3,
+            ),
+          )
+        ]),
         TableRow(
             children: [
-              const Text("Name", style: TextStyle(fontWeight: FontWeight.bold)),
-              Text(item.name)
-            ]
-        ),
+          const Text("Description",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                height: 3,
+              )),
+          Text(
+            item.description ?? "N/A",
+            style: const TextStyle(
+              height: 3,
+            ),
+          )
+        ]),
         TableRow(
             children: [
-              const Text(
-                  "Description", style: TextStyle(fontWeight: FontWeight.bold)),
-              Text(item.description ?? "N/A")
-            ]
-        ),
+          const Text("Storage Place",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                height: 3,
+              )),
+          Text(
+            item.storagePlace == null
+                ? "Not specified"
+                : item.storagePlace!.name,
+            style: const TextStyle(
+              height: 3,
+            ),
+          )
+        ]),
         TableRow(
             children: [
-              const Text("Storage Place",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              Text(item.storagePlace == null
-              ? "Not specified"
-              : item.storagePlace!.name)
-        ]
-        ),
+          const Text(
+            "Due Date",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              height: 3,
+            ),
+          ),
+          Text(
+            item.dueDate.toString(),
+            style: const TextStyle(
+              height: 3,
+            ),
+          ),
+        ]),
         TableRow(
             children: [
-              const Text(
-                  "Due Date", style: TextStyle(fontWeight: FontWeight.bold)),
-              Text(item.dueDate.toString())
-            ]
-        ),
-        TableRow(
-            children: [
-              const Text(
-                  "Barcode", style: TextStyle(fontWeight: FontWeight.bold)),
-              Text(item.barcode ?? "N/A")
-            ]
-        )
+          const Text(
+            "Barcode",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              height: 3,
+            ),
+          ),
+          Text(
+            item.barcode ?? "N/A",
+            style: const TextStyle(
+              height: 3,
+            ),
+          )
+        ])
       ],
     );
   }
@@ -90,7 +129,7 @@ class _BottomButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        margin: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+        margin: const EdgeInsets.fromLTRB(0, 40, 0, 0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
