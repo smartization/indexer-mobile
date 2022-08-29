@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:indexer_client/common/exceptions/exception_resolver.dart';
 import 'package:indexer_client/common/loading_indicator.dart';
 import 'package:indexer_client/place/add/add_place_popup.dart';
 import 'package:indexer_client/place/place_expansion_list.dart';
@@ -22,12 +23,14 @@ class PlaceMain extends StatefulWidget {
 class _PlaceMainState extends State<PlaceMain> {
   late Future<List<PlaceDTO>> _placesFuture;
   late PlaceService _placeService;
+  late ExceptionResolver _exceptionResolver;
   List<bool>? _expanded;
   List<PlaceDTO>? _places;
 
   @override
   void initState() {
     super.initState();
+    _exceptionResolver = ExceptionResolver(context: context);
     _placeService = PlaceService(context: context);
     _placesFuture = _placeService.getAll();
   }
@@ -73,7 +76,7 @@ class _PlaceMainState extends State<PlaceMain> {
         expandedList: _expanded,
       );
     } else if (snapshot.hasError) {
-      return Text("Error: ${snapshot.error}");
+      return Text("Error: ${snapshot.error.toString()}");
     } else {
       return const LoadingIndicator(title: "Loading places");
     }
@@ -89,7 +92,10 @@ class _PlaceMainState extends State<PlaceMain> {
     Future<PlaceDTO?> createdPlace = showDialog<PlaceDTO>(
       context: context,
       builder: (context) {
-        return AddPlacePopup(placeService: _placeService);
+        return AddPlacePopup(
+          placeService: _placeService,
+          exceptionResolver: _exceptionResolver,
+        );
       },
     );
     createdPlace.then((value) {
@@ -117,8 +123,7 @@ class _PlaceMainState extends State<PlaceMain> {
         });
       }
     }).catchError((error, stackTrace) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text((error as ApiException).reason)));
+      _exceptionResolver.resolveAndShow(error);
     }, test: (o) => o is ApiException);
   }
 }
