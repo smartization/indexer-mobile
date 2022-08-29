@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:indexer_client/common/exceptions/exception_resolver.dart';
 import 'package:indexer_client/common/loading_indicator.dart';
 import 'package:indexer_client/item/add/add_item_popup.dart';
 import 'package:indexer_client/item/barcode_service.dart';
@@ -23,6 +24,7 @@ class _ItemMainState extends State<ItemMain> {
   late ItemService itemService;
   late BarcodeService barcodeService;
   late Future<List<ItemDTO>> _itemsFuture;
+  late ExceptionResolver _exceptionResolver;
   List<ItemDTO>? _items;
 
   @override
@@ -30,6 +32,7 @@ class _ItemMainState extends State<ItemMain> {
     super.initState();
     itemService = ItemService(context: context);
     barcodeService = BarcodeService(context: context);
+    _exceptionResolver = ExceptionResolver(context: context);
     _itemsFuture = itemService.getAllItems();
   }
 
@@ -80,7 +83,7 @@ class _ItemMainState extends State<ItemMain> {
           onItemEdited: onItemEdited,
           expandedList: _expanded);
     } else if (snapshot.hasError) {
-      return Text("Error: ${snapshot.error}");
+      return Text("Error: ${snapshot.error.toString()}");
     }
     else {
       return const LoadingIndicator(title: "Downloading items");
@@ -94,6 +97,7 @@ class _ItemMainState extends State<ItemMain> {
         return ModifyItemPopup(
           itemService: itemService,
           barcodeService: barcodeService,
+          exceptionResolver: _exceptionResolver,
           addNew: true,
         );
       },
@@ -125,8 +129,7 @@ class _ItemMainState extends State<ItemMain> {
         });
       }
     }).catchError((error, stackTrace) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text((error as ApiException).reason)));
+      _exceptionResolver.resolveAndShow(error);
     }, test: (o) => o is ApiException);
   }
 
@@ -136,6 +139,7 @@ class _ItemMainState extends State<ItemMain> {
         builder: (ctx) => ModifyItemPopup(
           itemService: itemService,
               barcodeService: barcodeService,
+              exceptionResolver: _exceptionResolver,
               addNew: false,
               item: item,
             ));
@@ -152,9 +156,8 @@ class _ItemMainState extends State<ItemMain> {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Item was not changed")));
       }
-    }).onError((error, stackTrace) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text((error as ApiException).reason)));
+    }).catchError((error, stackTrace) {
+      _exceptionResolver.resolveAndShow(error);
     }, test: (o) => o is ApiException);
   }
 }
