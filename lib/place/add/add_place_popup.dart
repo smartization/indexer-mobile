@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:indexer_client/place/place_service.dart';
 
 import '../../api/api_spec.swagger.dart';
+import '../../common/exceptions/exception_resolver.dart';
 import 'name_input.dart';
 
 class AddPlacePopup extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey();
   final PlaceService placeService;
+  final ExceptionResolver exceptionResolver;
 
-  AddPlacePopup({Key? key, required this.placeService}) : super(key: key);
+  AddPlacePopup(
+      {Key? key, required this.placeService, required this.exceptionResolver})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +41,8 @@ class AddPlacePopup extends StatelessWidget {
       final PlaceDTO place = PlaceDTO(name: nameController.text);
       try {
         placeService.save(place).then((value) => Navigator.pop(context, value));
-      } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString())));
+      } on Exception catch (e) {
+        exceptionResolver.resolveAndShow(e);
         Navigator.pop(context);
       }
     }
