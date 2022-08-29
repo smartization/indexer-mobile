@@ -7,6 +7,7 @@ import 'package:indexer_client/item/add/place_input.dart';
 
 import '../../api/api_spec.swagger.dart';
 import '../../common/exceptions/ApiException.dart';
+import '../../common/exceptions/exception_resolver.dart';
 import '../barcode_service.dart';
 import '../item_service.dart';
 
@@ -15,20 +16,23 @@ class ModifyItemPopup extends StatefulWidget {
   final ItemService itemService;
   final BarcodeService barcodeService;
   final ItemDTO? item;
+  final ExceptionResolver exceptionResolver;
 
-  const ModifyItemPopup(
-      {Key? key,
-      required this.itemService,
-      required this.barcodeService,
-      required this.addNew,
-      this.item})
-      : super(key: key);
+  const ModifyItemPopup({
+    Key? key,
+    required this.itemService,
+    required this.barcodeService,
+    required this.addNew,
+    required this.exceptionResolver,
+    this.item,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _ModifyItemPopupState(
       itemService: itemService,
       barcodeService: barcodeService,
       addNew: addNew,
+      exceptionResolver: exceptionResolver,
       item: item);
 }
 
@@ -40,6 +44,7 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
   final GlobalKey<FormState> formKey = GlobalKey();
   final ItemService itemService;
   final BarcodeService barcodeService;
+  final ExceptionResolver exceptionResolver;
   final bool addNew;
   PlaceDTO? _selectedPlace;
   ItemDTO? item;
@@ -48,6 +53,7 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
       {required this.itemService,
       required this.barcodeService,
       required this.addNew,
+      required this.exceptionResolver,
       this.item});
 
   @override
@@ -148,17 +154,15 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
         itemService
             .saveItem(item)
             .then((value) => Navigator.pop(context, value))
-            .onError((error, stackTrace) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text((error as ApiException).reason)));
+            .catchError((error, stackTrace) {
+          exceptionResolver.resolveAndShow(error);
         }, test: (o) => o is ApiException);
       } else {
         itemService
             .updateItem(item)
             .then((value) => Navigator.pop(context, value))
-            .onError((error, stackTrace) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text((error as ApiException).reason)));
+            .catchError((error, stackTrace) {
+          exceptionResolver.resolveAndShow(error);
         }, test: (o) => o is ApiException);
       }
     }
@@ -187,9 +191,8 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text("Data obtained from: ${barcodeDTO.link}")));
         }
-      } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Exception ${e.toString()}")));
+      } on Exception catch (e) {
+        exceptionResolver.resolveAndShow(e);
       }
     }
   }
