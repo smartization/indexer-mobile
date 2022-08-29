@@ -20,7 +20,7 @@ class _ServerAddressTextField extends State<ServerAddressTextField> {
   Widget build(BuildContext context) {
     return TextFormField(
       decoration: InputDecoration(
-        labelText: "Server address",
+        labelText: "Server address (ending with /api)",
         helperText: _helperText,
       ),
       validator: validator,
