@@ -57,8 +57,10 @@ class _ItemTable extends StatelessWidget {
             children: [
               const Text("Storage Place",
                   style: TextStyle(fontWeight: FontWeight.bold)),
-              Text(item.storagePlace!.name)
-            ]
+              Text(item.storagePlace == null
+              ? "Not specified"
+              : item.storagePlace!.name)
+        ]
         ),
         TableRow(
             children: [
