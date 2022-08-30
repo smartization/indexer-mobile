@@ -8,7 +8,6 @@ import 'package:indexer_client/state.dart';
 import 'package:provider/provider.dart';
 
 import '../api/api_spec.swagger.dart';
-import '../common/exceptions/ApiException.dart';
 import '../drawer/drawer.dart';
 import 'item_expansion_list.dart';
 
@@ -21,8 +20,8 @@ class ItemMain extends StatefulWidget {
 
 class _ItemMainState extends State<ItemMain> {
   List<bool>? _expanded;
-  late ItemService itemService;
-  late BarcodeService barcodeService;
+  late ItemService _itemService;
+  late BarcodeService _barcodeService;
   late Future<List<ItemDTO>> _itemsFuture;
   late ExceptionResolver _exceptionResolver;
   List<ItemDTO>? _items;
@@ -30,10 +29,11 @@ class _ItemMainState extends State<ItemMain> {
   @override
   void initState() {
     super.initState();
-    itemService = ItemService(context: context);
-    barcodeService = BarcodeService(context: context);
+    _barcodeService = BarcodeService(context: context);
     _exceptionResolver = ExceptionResolver(context: context);
-    _itemsFuture = itemService.getAllItems();
+    _itemService =
+        ItemService(context: context, exceptionResolver: _exceptionResolver);
+    _itemsFuture = _itemService.getAllItems();
   }
 
   @override
@@ -41,7 +41,7 @@ class _ItemMainState extends State<ItemMain> {
     super.didChangeDependencies();
     Provider.of<AppState>(context).addListener(() {
       setState(() {
-        _itemsFuture = itemService.getAllItems();
+        _itemsFuture = _itemService.getAllItems();
       });
     });
   }
@@ -95,8 +95,8 @@ class _ItemMainState extends State<ItemMain> {
       context: context,
       builder: (context) {
         return ModifyItemPopup(
-          itemService: itemService,
-          barcodeService: barcodeService,
+          itemService: _itemService,
+          barcodeService: _barcodeService,
           exceptionResolver: _exceptionResolver,
           addNew: true,
         );
@@ -120,44 +120,20 @@ class _ItemMainState extends State<ItemMain> {
   }
 
   void onItemDeleted(ItemDTO item) {
-    itemService.delete(item).then((value) {
-      int idx = _items!.indexOf(item);
-      if (idx >= 0) {
-        setState(() {
-          _items!.remove(item);
-          _expanded!.removeAt(idx);
-        });
-      }
-    }).catchError((error, stackTrace) {
-      _exceptionResolver.resolveAndShow(error);
-    }, test: (o) => o is ApiException);
+    setState(() => _itemService.itemDeleteListener(item, _items!, _expanded!));
   }
 
   onItemEdited(ItemDTO item) {
     Future<ItemDTO?> editedItem = showDialog<ItemDTO>(
         context: context,
         builder: (ctx) => ModifyItemPopup(
-          itemService: itemService,
-              barcodeService: barcodeService,
+              itemService: _itemService,
+              barcodeService: _barcodeService,
               exceptionResolver: _exceptionResolver,
               addNew: false,
               item: item,
             ));
-    editedItem.then((value) {
-      if (value != null) {
-        int idx = _items!.indexOf(item);
-        setState(() {
-          _items!.removeAt(idx);
-          _items!.insert(idx, value);
-        });
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Saving")));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Item was not changed")));
-      }
-    }).catchError((error, stackTrace) {
-      _exceptionResolver.resolveAndShow(error);
-    }, test: (o) => o is ApiException);
+    setState(
+        () => _itemService.onItemEditedListener(editedItem, item, _items!));
   }
 }
