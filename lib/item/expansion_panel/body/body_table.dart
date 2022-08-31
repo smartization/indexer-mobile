@@ -38,17 +38,23 @@ class _ItemTable extends StatelessWidget {
 
   TableRow _createTableRow(String title, String? value) {
     return TableRow(children: [
-      Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          height: 3,
+      Container(
+        padding: const EdgeInsets.all(10),
+        child: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            height: 1,
+          ),
         ),
       ),
-      Text(
-        value!,
-        style: const TextStyle(
-          height: 3,
+      Container(
+        padding: const EdgeInsets.all(10),
+        child: Text(
+          value!,
+          style: const TextStyle(
+            height: 1,
+          ),
         ),
       )
     ]);
