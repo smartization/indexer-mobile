@@ -44,8 +44,7 @@ class _ItemDueDateInputState extends State<ItemDueDateInput> {
         context: context,
         initialDate: DateTime.now(),
         firstDate: DateTime.now(),
-        lastDate: DateTime.now().add(const Duration(days: 1000))
-    );
+        lastDate: DateTime.now().add(const Duration(days: 1000000)));
     dateTime ??= DateTime.now();
     setState(() {
       controller.text = dateTime!.toIso8601String().toString();
