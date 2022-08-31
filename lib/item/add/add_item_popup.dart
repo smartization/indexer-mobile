@@ -63,7 +63,8 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
       setState(() {
         nameController.text = item!.name;
         barcodeController.text = item!.barcode ?? "";
-        dueDateController.text = item!.dueDate!.toIso8601String();
+        dueDateController.text =
+            item!.dueDate == null ? "" : item!.dueDate!.toIso8601String();
         descriptionController.text = item!.description ?? "";
         _selectedPlace = item!.storagePlace;
       });
@@ -104,7 +105,8 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-                    child: ItemDueDateInput(controller: dueDateController),
+                    child: ItemDueDateInput(
+                        controller: dueDateController, addNew: addNew),
                   ),
                   Container(
                     margin: const EdgeInsets.fromLTRB(0, 20, 0, 0),
@@ -146,7 +148,9 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
           id: id,
           name: nameController.text,
           barcode: barcodeController.text,
-          dueDate: DateTime.parse(dueDateController.text),
+          dueDate: dueDateController.text.isEmpty
+              ? null
+              : DateTime.parse(dueDateController.text),
           description: descriptionController.text,
           barcodeType: ItemDTOBarcodeType.ean,
           storagePlace: _selectedPlace);
