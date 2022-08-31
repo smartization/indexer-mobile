@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../api/api_spec.swagger.dart';
-import 'body.dart';
+import 'body/body_main.dart';
 import 'header.dart';
 
 class ItemExpansionPanel extends ExpansionPanel {

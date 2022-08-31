@@ -120,7 +120,9 @@ class _ItemMainState extends State<ItemMain> {
   }
 
   void onItemDeleted(ItemDTO item) {
-    setState(() => _itemService.itemDeleteListener(item, _items!, _expanded!));
+    _itemService
+        .itemDeleteListener(item, _items!, _expanded!)
+        .then((value) => setState(() {}));
   }
 
   onItemEdited(ItemDTO item) {
@@ -133,7 +135,8 @@ class _ItemMainState extends State<ItemMain> {
               addNew: false,
               item: item,
             ));
-    setState(
-        () => _itemService.onItemEditedListener(editedItem, item, _items!));
+    _itemService
+        .onItemEditedListener(editedItem, item, _items!)
+        .then((value) => setState(() {}));
   }
 }
