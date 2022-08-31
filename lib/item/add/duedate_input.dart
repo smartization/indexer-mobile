@@ -2,34 +2,48 @@ import 'package:flutter/material.dart';
 
 class ItemDueDateInput extends StatefulWidget {
   final TextEditingController controller;
+  final bool addNew;
 
-  const ItemDueDateInput({Key? key, required this.controller}) : super(key: key);
+  const ItemDueDateInput(
+      {Key? key, required this.controller, required this.addNew})
+      : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _ItemDueDateInputState(controller: controller);
-
+  State<StatefulWidget> createState() =>
+      _ItemDueDateInputState(controller: controller, addNew: addNew);
 }
 
 class _ItemDueDateInputState extends State<ItemDueDateInput> {
   final TextEditingController controller;
+  final bool addNew;
+  late bool _addDueDate;
 
-  _ItemDueDateInputState({required this.controller});
+  _ItemDueDateInputState({required this.controller, required this.addNew}) {
+    _addDueDate = addNew;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      decoration: const InputDecoration(
-        labelText: "Due date"
-      ),
-      validator: validate,
-      readOnly: true,
-      onTap: onTap,
-      controller: controller,
+    return Row(
+      children: [
+        Expanded(
+            child: TextFormField(
+          enabled: _addDueDate,
+          decoration: const InputDecoration(labelText: "Due date"),
+          validator: validate,
+          readOnly: true,
+          onTap: onTap,
+          controller: controller,
+        )),
+        Checkbox(value: _addDueDate, onChanged: addDueDateChanged)
+      ],
     );
   }
 
-
   String? validate(String? value) {
+    if (!_addDueDate) {
+      return null;
+    }
     if (value == null) {
       return "You have not selected any due date";
     }
@@ -49,5 +63,9 @@ class _ItemDueDateInputState extends State<ItemDueDateInput> {
     setState(() {
       controller.text = dateTime!.toIso8601String().toString();
     });
+  }
+
+  void addDueDateChanged(bool? value) {
+    setState(() => _addDueDate = value!);
   }
 }
