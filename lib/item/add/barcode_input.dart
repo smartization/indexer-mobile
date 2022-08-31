@@ -19,7 +19,9 @@ class ItemBarcodeInput extends StatelessWidget {
           ),
         ),
         TextButton(
-            onPressed: onCameraButtonPressed, child: const Icon(Icons.camera))
+          onPressed: onCameraButtonPressed,
+          child: const Icon(Icons.camera),
+        )
       ],
     );
   }
