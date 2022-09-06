@@ -19,7 +19,7 @@ class _ItemDueDateInputState extends State<ItemDueDateInput> {
   late bool _addDueDate;
 
   _ItemDueDateInputState({required this.controller, required this.addNew}) {
-    _addDueDate = addNew;
+    _addDueDate = addNew || controller.text.isNotEmpty;
   }
 
   @override
@@ -66,6 +66,11 @@ class _ItemDueDateInputState extends State<ItemDueDateInput> {
   }
 
   void addDueDateChanged(bool? value) {
-    setState(() => _addDueDate = value!);
+    setState(() {
+      _addDueDate = value!;
+      if (!_addDueDate) {
+        controller.text = "";
+      }
+    });
   }
 }
