@@ -4,7 +4,9 @@ import 'package:indexer_client/item/add/description_input.dart';
 import 'package:indexer_client/item/add/duedate_input.dart';
 import 'package:indexer_client/item/add/name_input.dart';
 import 'package:indexer_client/item/add/place_input.dart';
+import 'package:indexer_client/item/add/quantity_input.dart';
 
+import '../../api/api_spec.enums.swagger.dart';
 import '../../api/api_spec.swagger.dart';
 import '../../common/exceptions/ApiException.dart';
 import '../../common/exceptions/exception_resolver.dart';
@@ -41,6 +43,7 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
   final TextEditingController barcodeController = TextEditingController();
   final TextEditingController dueDateController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController quantityController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey();
   final ItemService itemService;
   final BarcodeService barcodeService;
@@ -67,6 +70,8 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
             item!.dueDate == null ? "" : item!.dueDate!.toIso8601String();
         descriptionController.text = item!.description ?? "";
         _selectedPlace = item!.storagePlace;
+        quantityController.text =
+            item!.quantity == null ? "" : item!.quantity.toString();
       });
     }
   }
@@ -107,6 +112,10 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
                     padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
                     child: ItemDueDateInput(
                         controller: dueDateController, addNew: addNew),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+                    child: ItemQuantityInput(controller: quantityController),
                   ),
                   Container(
                     margin: const EdgeInsets.fromLTRB(0, 20, 0, 0),
@@ -153,7 +162,10 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
               : DateTime.parse(dueDateController.text),
           description: descriptionController.text,
           barcodeType: ItemDTOBarcodeType.ean,
-          storagePlace: _selectedPlace);
+          storagePlace: _selectedPlace,
+          quantity: quantityController.text == ""
+              ? null
+              : int.parse(quantityController.text));
       if (addNew) {
         itemService
             .saveItem(item)
