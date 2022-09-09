@@ -55,21 +55,31 @@ class ItemService extends DTOService {
   }
 
   Future<void> onItemEditedListener(
-      Future<ItemDTO?> editedItem, ItemDTO oldItem, List<ItemDTO> items) async {
+      Future<ItemDTO?> editedItem, ItemDTO oldItem, List<ItemDTO> items,
+      {showSaveNotification = true}) async {
     ItemDTO? item = await editedItem;
     try {
       if (item != null) {
         int idx = items.indexOf(oldItem);
         items.removeAt(idx);
         items.insert(idx, item);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Saving")));
-      } else {
+        if (showSaveNotification) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text("Saving")));
+        }
+      } else if (showSaveNotification) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Item was not changed")));
       }
     } on ApiException catch (error) {
       exceptionResolver.resolveAndShow(error);
     }
+  }
+
+  Future<void> saveAndUpdateList(
+      ItemDTO newItem, ItemDTO oldItem, List<ItemDTO> items) async {
+    Future<ItemDTO> futureItem = updateItem(newItem);
+    return onItemEditedListener(futureItem, oldItem, items,
+        showSaveNotification: false);
   }
 }
