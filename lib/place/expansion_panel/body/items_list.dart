@@ -46,6 +46,8 @@ class _ItemsListState extends State<_ItemsList> {
             expandedList: _expanded,
             onItemDelete: onItemDelete,
             onItemEdited: onItemEdit,
+            onIncrement: onDecrementOrIncrement,
+            onDecrement: onDecrementOrIncrement,
           ));
     } else if (snapshot.hasError) {
       return Text("Error: ${snapshot.error.toString()}");
@@ -79,5 +81,12 @@ class _ItemsListState extends State<_ItemsList> {
     _itemService
         .onItemEditedListener(editedItem, item, _items!)
         .then((_) => setState(() {}));
+  }
+
+  onDecrementOrIncrement(int? value, ItemDTO item) {
+    ItemDTO newItem = $ItemDTOExtension(item).copyWith(quantity: value!);
+    _itemService
+        .saveAndUpdateList(newItem, item, _items!)
+        .then((value) => setState(() {}));
   }
 }
