@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:indexer_client/common/firebase.dart';
 import 'package:indexer_client/common/loading_indicator.dart';
-
 import 'package:indexer_client/item/item_main.dart';
 import 'package:indexer_client/settings/settings_main.dart';
 import 'package:indexer_client/state.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    ChangeNotifierProvider(
-      create: (ctx) => AppState(),
-      child: MyApp(),
-    )
-  );
+  FirebaseIntegration.init();
+  runApp(ChangeNotifierProvider(
+    create: (ctx) => AppState(),
+    child: MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -40,6 +39,7 @@ class MyApp extends StatelessWidget {
 
   Widget builder(BuildContext context, AsyncSnapshot snapshot) {
     if (snapshot.hasData) {
+      FirebaseIntegration.subscribeToTopic("due-date", context);
       return _loadPreferencesAndShow(snapshot.data, context);
     } else if (snapshot.hasError) {
       return _showError(snapshot.error);
