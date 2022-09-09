@@ -77,11 +77,14 @@ class _ItemMainState extends State<ItemMain> {
       // sets _expanded only for first data fetch from api
       _expanded ??= List.filled(_items!.length, false, growable: true);
       return ItemExpansionList(
-          items: _items,
-          onExpanded: onExpanded,
-          onItemDelete: onItemDeleted,
-          onItemEdited: onItemEdited,
-          expandedList: _expanded);
+        items: _items,
+        onExpanded: onExpanded,
+        onItemDelete: onItemDeleted,
+        onItemEdited: onItemEdited,
+        expandedList: _expanded,
+        onDecrement: onDecrementOrIncrement,
+        onIncrement: onDecrementOrIncrement,
+      );
     } else if (snapshot.hasError) {
       return Text("Error: ${snapshot.error.toString()}");
     }
@@ -137,6 +140,13 @@ class _ItemMainState extends State<ItemMain> {
             ));
     _itemService
         .onItemEditedListener(editedItem, item, _items!)
+        .then((value) => setState(() {}));
+  }
+
+  onDecrementOrIncrement(int? value, ItemDTO item) {
+    ItemDTO newItem = $ItemDTOExtension(item).copyWith(quantity: value!);
+    _itemService
+        .saveAndUpdateList(newItem, item, _items!)
         .then((value) => setState(() {}));
   }
 }
