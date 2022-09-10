@@ -1,6 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:indexer_client/common/dto_service.dart';
+import 'package:indexer_client/settings/settings_main.dart';
+import 'package:indexer_client/state.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../firebase_options.dart';
 
@@ -11,20 +16,16 @@ class FirebaseIntegration {
     );
   }
 
-  static void subscribeToTopic(String topic, BuildContext context) async {
-    try {
-      await FirebaseMessaging.instance.subscribeToTopic('due-date');
-      FirebaseMessaging.onMessage.listen((event) {
-        if (event.notification != null) {
-          final String notificationText =
-              "${event.notification!.title}: ${event.notification!.body}";
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(notificationText)));
-        }
-      });
-      print('subscribed to topic');
-    } catch (e) {
-      print('error is $e');
-    }
+  static void syncToken(BuildContext context) async {
+    final String fcmToken =
+        await FirebaseMessaging.instance.getToken() ?? "missing-new-token";
+    DTOService dtoService = DTOService(context: context);
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    String oldToken =
+        sharedPreferences.getString(SettingsKeys.fcmToken.toString()) ??
+            "missing-old-token";
+    sharedPreferences.setString(SettingsKeys.fcmToken.toString(), fcmToken);
+    dtoService.getApi().firebaseTokenOldTokenUpdateNewTokenPatch(
+        oldToken: oldToken, newToken: fcmToken);
   }
 }
