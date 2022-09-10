@@ -8,7 +8,8 @@ import '../common/submit_button.dart';
 import '../drawer/drawer.dart';
 
 enum SettingsKeys {
-  serverAddress;
+  serverAddress,
+  fcmToken;
 }
 
 class SettingsMain extends StatefulWidget {
