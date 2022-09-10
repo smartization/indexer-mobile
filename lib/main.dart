@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
 
   Widget builder(BuildContext context, AsyncSnapshot snapshot) {
     if (snapshot.hasData) {
-      FirebaseIntegration.subscribeToTopic("due-date", context);
+      FirebaseIntegration.syncToken(context);
       return _loadPreferencesAndShow(snapshot.data, context);
     } else if (snapshot.hasError) {
       return _showError(snapshot.error);
