@@ -7,6 +7,7 @@ class PlaceExpansionList extends StatelessWidget {
   final List<PlaceDTO> places;
   final ExpansionPanelCallback? onExpanded;
   final Function(PlaceDTO) onPlaceDelete;
+  final Function(PlaceDTO) onPlaceEdit;
   final List<bool> expandedList;
 
   const PlaceExpansionList(
@@ -14,7 +15,8 @@ class PlaceExpansionList extends StatelessWidget {
       required places,
       this.onExpanded,
       expandedList,
-      required this.onPlaceDelete})
+      required this.onPlaceDelete,
+      required this.onPlaceEdit})
       : expandedList = expandedList ?? const [],
         places = places ?? const [],
         super(key: key);
@@ -34,7 +36,7 @@ class PlaceExpansionList extends StatelessWidget {
         .asMap()
         .entries
         .map((e) => PlaceExpansionPanel.from(
-            e.value, expandedList[e.key], onPlaceDelete))
+            e.value, expandedList[e.key], onPlaceDelete, onPlaceEdit))
         .toList();
   }
 }
