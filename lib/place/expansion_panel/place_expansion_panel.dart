@@ -11,8 +11,8 @@ class PlaceExpansionPanel extends ExpansionPanel {
       super.isExpanded,
       super.canTapOnHeader});
 
-  PlaceExpansionPanel.from(
-      PlaceDTO place, bool isExpanded, Function(PlaceDTO) onPlaceDelete)
+  PlaceExpansionPanel.from(PlaceDTO place, bool isExpanded,
+      Function(PlaceDTO) onPlaceDelete, Function(PlaceDTO) onEdit)
       : this(
             headerBuilder: (ctx, isExpanded) => PlaceExpansionPanelHeader(
                   place: place,
@@ -21,7 +21,7 @@ class PlaceExpansionPanel extends ExpansionPanel {
             body: PlaceExpansionPanelBody(
               place: place,
               onDelete: onPlaceDelete,
-            ),
+                onEdit: onEdit),
             isExpanded: isExpanded,
             canTapOnHeader: true);
 }
