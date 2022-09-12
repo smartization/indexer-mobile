@@ -9,17 +9,19 @@ import '../../../item/add/add_item_popup.dart';
 import '../../../item/item_expansion_list.dart';
 
 part 'bottom_buttons.dart';
-
 part 'items_list.dart';
-
 part "place_table.dart";
 
 class PlaceExpansionPanelBody extends StatelessWidget {
   final PlaceDTO place;
   final Function(PlaceDTO) onDelete;
+  final Function(PlaceDTO) onEdit;
 
   const PlaceExpansionPanelBody(
-      {Key? key, required this.place, required this.onDelete})
+      {Key? key,
+      required this.place,
+      required this.onDelete,
+      required this.onEdit})
       : super(key: key);
 
   @override
@@ -30,7 +32,10 @@ class PlaceExpansionPanelBody extends StatelessWidget {
           children: [
             _PlaceTable(place: place),
             _ItemsList(place: place),
-            _BottomButtons(onDelete: () => onDelete(place))
+            _BottomButtons(
+              onDelete: () => onDelete(place),
+              onEdit: () => onEdit(place),
+            )
           ],
         ));
   }
