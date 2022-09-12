@@ -15,6 +15,7 @@ class _ItemTable extends StatelessWidget {
           ? null
           : "${item.dueDate!.day}/${item.dueDate!.month}/${item.dueDate!.year}",
       "Barcode": item.barcode,
+      "Category": item.category == null ? null : item.category!.name
     };
     tableValues.removeWhere((key, value) => value == null || value.isEmpty);
   }
