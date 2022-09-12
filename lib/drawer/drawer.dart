@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:indexer_client/drawer/drawer_category_button.dart';
 import 'package:indexer_client/drawer/drawer_header.dart';
 import 'package:indexer_client/drawer/drawer_place_button.dart';
 import 'package:indexer_client/drawer/drawer_settings_button.dart';
@@ -13,11 +14,12 @@ class CommonDrawer extends StatelessWidget {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
-        children: [
-          const DrawerHeaderr(),
+        children: const [
+          DrawerHeaderr(),
           DrawerHomeButton(),
+          DrawerPlaceButton(),
+          DrawerCategoryButton(),
           DrawerSettingsButton(),
-          const DrawerPlaceButton()
         ],
       ),
     );

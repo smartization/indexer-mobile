@@ -1,21 +1,13 @@
 part of "body_main.dart";
 
-class _ItemTable extends StatelessWidget {
+class _CategoryTable extends StatelessWidget {
+  final CategoryDTO category;
   late Map<String, String?> tableValues;
 
-  final ItemDTO item;
-
-  _ItemTable({required this.item}) {
+  _CategoryTable({required this.category}) {
     tableValues = {
-      "Name": item.name,
-      "Description": item.description,
-      "Storage Place":
-          item.storagePlace == null ? "Not specified" : item.storagePlace!.name,
-      "Due Date": item.dueDate == null
-          ? null
-          : "${item.dueDate!.day}/${item.dueDate!.month}/${item.dueDate!.year}",
-      "Barcode": item.barcode,
-      "Category": item.category == null ? null : item.category!.name
+      "Name": category.name,
+      "Description": category.description,
     };
     tableValues.removeWhere((key, value) => value == null || value.isEmpty);
   }
@@ -23,11 +15,10 @@ class _ItemTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Table(
-      border: const TableBorder(
-          bottom: BorderSide(color: Colors.grey),
-          horizontalInside: BorderSide(color: Colors.grey)),
-      children: _generateChildren(),
-    );
+        border: const TableBorder(
+            bottom: BorderSide(color: Colors.grey),
+            horizontalInside: BorderSide(color: Colors.grey)),
+        children: _generateChildren());
   }
 
   List<TableRow> _generateChildren() {

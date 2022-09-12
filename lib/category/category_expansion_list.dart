@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:indexer_client/category/expansion_panel/category_expansion_panel.dart';
 
 import '../api/api_spec.swagger.dart';
-import 'expansion_panel/place_expansion_panel.dart';
 
-class PlaceExpansionList extends StatelessWidget {
-  final List<PlaceDTO> places;
+class CategoryExpansionList extends StatelessWidget {
+  final List<CategoryDTO> categories;
   final ExpansionPanelCallback? onExpanded;
-  final Function(PlaceDTO) onPlaceDelete;
-  final Function(PlaceDTO) onPlaceEdit;
+  final Function(CategoryDTO) onCategoryDelete;
+  final Function(CategoryDTO) onCategoryEdit;
   final List<bool> expandedList;
 
-  const PlaceExpansionList(
+  const CategoryExpansionList(
       {Key? key,
-      required places,
+      required categories,
       this.onExpanded,
       expandedList,
-      required this.onPlaceDelete,
-      required this.onPlaceEdit})
+      required this.onCategoryDelete,
+      required this.onCategoryEdit})
       : expandedList = expandedList ?? const [],
-        places = places ?? const [],
+        categories = categories ?? const [],
         super(key: key);
 
   @override
@@ -32,11 +32,11 @@ class PlaceExpansionList extends StatelessWidget {
   }
 
   List<ExpansionPanel> generateChildren() {
-    return places
+    return categories
         .asMap()
         .entries
-        .map((e) => PlaceExpansionPanel.from(
-            e.value, expandedList[e.key], onPlaceDelete, onPlaceEdit))
+        .map((e) => CategoryExpansionPanel.from(
+            e.value, expandedList[e.key], onCategoryDelete, onCategoryEdit))
         .toList();
   }
 }
