@@ -40,6 +40,12 @@ class ItemService extends DTOService {
     return resolveResponse(response) as List<ItemDTO>;
   }
 
+  Future<List<ItemDTO>> getAllItemsOnCategory(num? categoryId) async {
+    Response<List<ItemDTO>> respomse =
+        await getApi().itemsOnCategoryCategoryIdGet(categoryId: categoryId);
+    return resolveResponse(respomse) as List<ItemDTO>;
+  }
+
   Future<void> itemDeleteListener(
       ItemDTO item, List<ItemDTO> items, List<bool> expanded) async {
     await delete(item);
