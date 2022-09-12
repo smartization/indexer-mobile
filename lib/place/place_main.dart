@@ -31,7 +31,8 @@ class _PlaceMainState extends State<PlaceMain> {
   void initState() {
     super.initState();
     _exceptionResolver = ExceptionResolver(context: context);
-    _placeService = PlaceService(context: context);
+    _placeService =
+        PlaceService(context: context, exceptionResolver: _exceptionResolver);
     _placesFuture = _placeService.getAll();
   }
 
@@ -72,6 +73,7 @@ class _PlaceMainState extends State<PlaceMain> {
       return PlaceExpansionList(
         places: _places,
         onPlaceDelete: onPlaceDelete,
+        onPlaceEdit: onPlaceEdit,
         onExpanded: onExpanded,
         expandedList: _expanded,
       );
@@ -95,6 +97,7 @@ class _PlaceMainState extends State<PlaceMain> {
         return AddPlacePopup(
           placeService: _placeService,
           exceptionResolver: _exceptionResolver,
+          addNew: true,
         );
       },
     );
@@ -125,5 +128,19 @@ class _PlaceMainState extends State<PlaceMain> {
     }).catchError((error, stackTrace) {
       _exceptionResolver.resolveAndShow(error);
     }, test: (o) => o is ApiException);
+  }
+
+  onPlaceEdit(PlaceDTO place) {
+    Future<PlaceDTO?> editedPlace = showDialog<PlaceDTO>(
+        context: context,
+        builder: (ctx) => AddPlacePopup(
+              placeService: _placeService,
+              exceptionResolver: _exceptionResolver,
+              addNew: false,
+              place: place,
+            ));
+    _placeService
+        .onPlaceEditedListener(editedPlace, place, _places!)
+        .then((value) => setState(() {}));
   }
 }
