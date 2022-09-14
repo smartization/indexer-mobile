@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:indexer_client/item/add/barcode_input.dart';
+import 'package:indexer_client/item/add/category_input.dart';
 import 'package:indexer_client/item/add/description_input.dart';
 import 'package:indexer_client/item/add/duedate_input.dart';
 import 'package:indexer_client/item/add/name_input.dart';
@@ -44,12 +45,14 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
   final TextEditingController dueDateController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController quantityController = TextEditingController();
-  final GlobalKey<FormState> formKey = GlobalKey();
+  final GlobalKey<FormState> formKey = GlobalKey(debugLabel: "item");
   final ItemService itemService;
   final BarcodeService barcodeService;
   final ExceptionResolver exceptionResolver;
   final bool addNew;
+  bool suggestionButtonEnabled = false;
   PlaceDTO? _selectedPlace;
+  CategoryDTO? _selectedCategory;
   ItemDTO? item;
 
   _ModifyItemPopupState(
@@ -70,6 +73,7 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
             item!.dueDate == null ? "" : item!.dueDate!.toIso8601String();
         descriptionController.text = item!.description ?? "";
         _selectedPlace = item!.storagePlace;
+        _selectedCategory = item!.category;
         quantityController.text =
             item!.quantity == null ? "" : item!.quantity.toString();
       });
@@ -102,16 +106,28 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
                     child: ItemPlaceInput(
                       value: _selectedPlace,
                       onChanged: onPlaceChanged,
+                      exceptionResolver: exceptionResolver,
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-                    child: ItemBarcodeInput(controller: barcodeController),
+                    child: ItemBarcodeInput(
+                      controller: barcodeController,
+                      onChecksumValidChange: onChecksumValidChange,
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
                     child: ItemDueDateInput(
                         controller: dueDateController, addNew: addNew),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+                    child: ItemCategoryInput(
+                      onChanged: onItemCategoryChanged,
+                      exceptionResolver: exceptionResolver,
+                      value: _selectedCategory,
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
@@ -133,7 +149,9 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 5),
                           child: ElevatedButton(
-                              onPressed: getSuggestion,
+                              onPressed: suggestionButtonEnabled
+                                  ? getSuggestion
+                                  : null,
                               child: const Text("Suggest inputs")),
                         )
                       ],
@@ -163,6 +181,7 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
           description: descriptionController.text,
           barcodeType: ItemDTOBarcodeType.ean,
           storagePlace: _selectedPlace,
+          category: _selectedCategory,
           quantity: quantityController.text == ""
               ? null
               : int.parse(quantityController.text));
@@ -211,5 +230,15 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
         exceptionResolver.resolveAndShow(e);
       }
     }
+  }
+
+  onItemCategoryChanged(CategoryDTO? category) {
+    if (category != null) {
+      setState(() => _selectedCategory = category);
+    }
+  }
+
+  onChecksumValidChange(bool isValid) {
+    setState(() => suggestionButtonEnabled = isValid);
   }
 }

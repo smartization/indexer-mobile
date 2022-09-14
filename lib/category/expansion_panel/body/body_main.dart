@@ -9,17 +9,19 @@ import '../../../item/add/add_item_popup.dart';
 import '../../../item/item_expansion_list.dart';
 
 part 'bottom_buttons.dart';
+
+part "category_table.dart";
+
 part 'items_list.dart';
-part "place_table.dart";
 
-class PlaceExpansionPanelBody extends StatelessWidget {
-  final PlaceDTO place;
-  final Function(PlaceDTO) onDelete;
-  final Function(PlaceDTO) onEdit;
+class CategoryExpansionPanelBody extends StatelessWidget {
+  final CategoryDTO category;
+  final Function(CategoryDTO) onDelete;
+  final Function(CategoryDTO) onEdit;
 
-  const PlaceExpansionPanelBody(
+  const CategoryExpansionPanelBody(
       {Key? key,
-      required this.place,
+      required this.category,
       required this.onDelete,
       required this.onEdit})
       : super(key: key);
@@ -30,11 +32,11 @@ class PlaceExpansionPanelBody extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         child: Column(
           children: [
-            _PlaceTable(place: place),
-            _ItemsList(place: place),
+            _CategoryTable(category: category),
+            _ItemsList(category: category),
             _BottomButtons(
-              onDelete: () => onDelete(place),
-              onEdit: () => onEdit(place),
+              onDelete: () => onDelete(category),
+              onEdit: () => onEdit(category),
             )
           ],
         ));
