@@ -5,7 +5,6 @@ class ItemNameTextInput extends StatelessWidget {
 
   const ItemNameTextInput({Key? key, required, required this.controller}) : super(key: key);
 
-  
   @override
   Widget build(BuildContext context) {
     return TextFormField(
@@ -13,6 +12,14 @@ class ItemNameTextInput extends StatelessWidget {
       minLines: 1,
       maxLines: null,
       controller: controller,
+      validator: validator,
     );
+  }
+
+  String? validator(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Name is required";
+    }
+    return null;
   }
 }
