@@ -44,7 +44,7 @@ class _ItemDueDateInputState extends State<ItemDueDateInput> {
     if (!_addDueDate) {
       return null;
     }
-    if (value == null) {
+    if (value == null || value.isEmpty) {
       return "You have not selected any due date";
     }
     if (DateTime.parse(value).isBefore(DateTime.now())) {

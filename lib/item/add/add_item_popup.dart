@@ -50,6 +50,7 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
   final BarcodeService barcodeService;
   final ExceptionResolver exceptionResolver;
   final bool addNew;
+  bool suggestionButtonEnabled = false;
   PlaceDTO? _selectedPlace;
   CategoryDTO? _selectedCategory;
   ItemDTO? item;
@@ -110,7 +111,10 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-                    child: ItemBarcodeInput(controller: barcodeController),
+                    child: ItemBarcodeInput(
+                      controller: barcodeController,
+                      onChecksumValidChange: onChecksumValidChange,
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
@@ -145,7 +149,9 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 5),
                           child: ElevatedButton(
-                              onPressed: getSuggestion,
+                              onPressed: suggestionButtonEnabled
+                                  ? getSuggestion
+                                  : null,
                               child: const Text("Suggest inputs")),
                         )
                       ],
@@ -230,5 +236,9 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
     if (category != null) {
       setState(() => _selectedCategory = category);
     }
+  }
+
+  onChecksumValidChange(bool isValid) {
+    setState(() => suggestionButtonEnabled = isValid);
   }
 }
