@@ -3,6 +3,7 @@ import 'package:indexer_client/common/exceptions/exception_resolver.dart';
 import 'package:indexer_client/common/loading_indicator.dart';
 import 'package:indexer_client/item/add/add_item_popup.dart';
 import 'package:indexer_client/item/barcode_service.dart';
+import 'package:indexer_client/item/item_search_bottom_sheet.dart';
 import 'package:indexer_client/item/item_service.dart';
 import 'package:indexer_client/state.dart';
 import 'package:provider/provider.dart';
@@ -18,13 +19,21 @@ class ItemMain extends StatefulWidget {
   State<StatefulWidget> createState() => _ItemMainState();
 }
 
-class _ItemMainState extends State<ItemMain> {
+class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
   List<bool>? _expanded;
   late ItemService _itemService;
   late BarcodeService _barcodeService;
   late Future<List<ItemDTO>> _itemsFuture;
   late ExceptionResolver _exceptionResolver;
+  late List<num> _selectedCategories;
+  late List<num> _selectedPlaces;
   List<ItemDTO>? _items;
+  String? _searchNamePhrase;
+
+  _ItemMainState() {
+    _selectedCategories = List.empty(growable: true);
+    _selectedPlaces = List.empty(growable: true);
+  }
 
   @override
   void initState() {
@@ -56,12 +65,25 @@ class _ItemMainState extends State<ItemMain> {
         future: _itemsFuture,
         builder: futureBuilder,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: onAddButtonPressed,
-        tooltip: 'Add Item',
-        child: const Icon(Icons.add),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
+            child: FloatingActionButton(
+                onPressed: onAddButtonPressed,
+                tooltip: 'Add Item',
+                child: const Icon(Icons.add)),
+          ),
+          FloatingActionButton(
+            onPressed: onSearchButtonPressed,
+            tooltip: "Search item",
+            child: const Icon(Icons.search),
+          )
+        ],
       ),
-      drawer: const CommonDrawer(),// This trailing comma makes auto-formatting nicer for build methods.
+      drawer:
+          const CommonDrawer(), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
@@ -77,7 +99,7 @@ class _ItemMainState extends State<ItemMain> {
       // sets _expanded only for first data fetch from api
       _expanded ??= List.filled(_items!.length, false, growable: true);
       return ItemExpansionList(
-        items: _items,
+        items: filterItems(_items),
         onExpanded: onExpanded,
         onItemDelete: onItemDeleted,
         onItemEdited: onItemEdited,
@@ -122,6 +144,29 @@ class _ItemMainState extends State<ItemMain> {
     });
   }
 
+  void onSearchButtonPressed() {
+    showModalBottomSheet(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(20),
+          ),
+        ),
+        clipBehavior: Clip.antiAliasWithSaveLayer,
+        builder: (ctx) {
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+            child: ItemSearchBottomSheet(
+              onNewSearchPhrase: searchBoxChanged,
+              onNewCategorySelected: onNewCategorySelected,
+              onNewPlaceSelected: onNewPlaceSelected,
+              selectedCategories: _selectedCategories,
+              selectedPlaces: _selectedPlaces,
+            ),
+          );
+        });
+  }
+
   void onItemDeleted(ItemDTO item) {
     _itemService
         .itemDeleteListener(item, _items!, _expanded!)
@@ -148,5 +193,57 @@ class _ItemMainState extends State<ItemMain> {
     _itemService
         .saveAndUpdateList(newItem, item, _items!)
         .then((value) => setState(() {}));
+  }
+
+  void searchBoxChanged(String value) {
+    setState(() => _searchNamePhrase = value);
+  }
+
+  filterItems(List<ItemDTO>? items) {
+    List<ItemDTO>? finalItems = items;
+    if (_searchNamePhrase != null && _searchNamePhrase!.isNotEmpty) {
+      finalItems = finalItems!
+          .where((element) => element.name.contains(_searchNamePhrase!))
+          .toList(growable: true);
+    }
+    if (_selectedCategories.isNotEmpty) {
+      finalItems = finalItems!.where((element) {
+        if (element.category == null) {
+          return false;
+        } else {
+          return _selectedCategories.contains(element.category!.id!);
+        }
+      }).toList();
+    }
+    if (_selectedPlaces.isNotEmpty) {
+      finalItems = finalItems!.where((element) {
+        if (element.storagePlace == null) {
+          return false;
+        } else {
+          return _selectedPlaces.contains(element.storagePlace!.id!);
+        }
+      }).toList();
+    }
+    return finalItems;
+  }
+
+  onNewCategorySelected(CategoryDTO category) {
+    setState(() {
+      if (_selectedCategories.contains(category.id)) {
+        _selectedCategories.remove(category.id);
+      } else {
+        _selectedCategories.add(category.id!);
+      }
+    });
+  }
+
+  onNewPlaceSelected(PlaceDTO place) {
+    setState(() {
+      if (_selectedPlaces.contains(place.id)) {
+        _selectedPlaces.remove(place.id);
+      } else {
+        _selectedPlaces.add(place.id!);
+      }
+    });
   }
 }
