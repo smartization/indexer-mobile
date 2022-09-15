@@ -22,7 +22,14 @@ class _ItemBarcodeInputState extends State<ItemBarcodeInput> {
   _ItemBarcodeInputState(
       {Key? key,
       required this.controller,
-      required this.onChecksumValidChange});
+      required this.onChecksumValidChange}) {
+    validate(controller.text);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +44,6 @@ class _ItemBarcodeInputState extends State<ItemBarcodeInput> {
                 helperMaxLines: 4),
             keyboardType: TextInputType.number,
             onChanged: onChanged,
-            validator: validator,
           ),
         ),
         TextButton(
@@ -55,57 +61,18 @@ class _ItemBarcodeInputState extends State<ItemBarcodeInput> {
   }
 
   void onChanged(String value) {
-    final bool numbersOnly = validateBarcodeNumbersOnly(value);
-    if (!numbersOnly) {
-      _helperText = "This barcode should contains only digits";
-      onChecksumValidChange(false);
-      setState(() {});
-      return;
-    }
-    final bool lengthValid = validateBarcodeLength(value);
-    if (!lengthValid) {
-      _helperText = "This barcode length is not 13";
-      onChecksumValidChange(false);
-      setState(() {});
-      return;
-    }
-    final bool checksumValid = validateBarcodeChecksum(value);
-    if (!checksumValid) {
-      _helperText = "This barcode checksum is invalid";
-      onChecksumValidChange(false);
-      setState(() {});
-      return;
-    }
-    _helperText = "";
-    onChecksumValidChange(true);
+    onChecksumValidChange(validate(value));
     setState(() {});
   }
 
-  bool validateBarcodeChecksum(String barcode) {
-    String barcodeWithoutLast = barcode.substring(0, barcode.length - 1);
-    List<int> digits =
-        barcodeWithoutLast.split("").map((e) => int.parse(e)).toList();
-    int evenSum = 0;
-    int oddSum = 0;
-    for (int i = 0; i < digits.length; i += 2) {
-      evenSum += digits[i];
+  bool validate(String value) {
+    final bool numbersOnly = validateBarcodeNumbersOnly(value);
+    if (!numbersOnly) {
+      _helperText = "This barcode should contains only digits";
+      return false;
     }
-    for (int i = 1; i < digits.length; i += 2) {
-      oddSum = digits[i];
-    }
-    int unit = evenSum + oddSum * 3;
-    int check = 10 - (unit % 10);
-    int lastBarcodeDigit = int.parse(barcode[barcode.length - 1]);
-    return check == lastBarcodeDigit;
-  }
-
-  String? validator(String? value) {
-    if (value != null && value.isNotEmpty) {
-      if (value.length != 13) {
-        return "Barcode should have 13 chars";
-      }
-    }
-    return null;
+    _helperText = "";
+    return true;
   }
 
   bool validateBarcodeLength(String value) {
