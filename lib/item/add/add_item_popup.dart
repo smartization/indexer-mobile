@@ -50,7 +50,7 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
   final BarcodeService barcodeService;
   final ExceptionResolver exceptionResolver;
   final bool addNew;
-  bool suggestionButtonEnabled = false;
+  late bool suggestionButtonEnabled = false;
   PlaceDTO? _selectedPlace;
   CategoryDTO? _selectedCategory;
   ItemDTO? item;
@@ -76,6 +76,7 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
         _selectedCategory = item!.category;
         quantityController.text =
             item!.quantity == null ? "" : item!.quantity.toString();
+        suggestionButtonEnabled = item!.barcode != null;
       });
     }
   }
