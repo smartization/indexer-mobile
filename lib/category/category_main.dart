@@ -73,6 +73,8 @@ class _CategoryMainState extends State<CategoryMain> {
         onCategoryEdit: onCategoryEdit,
         onExpanded: onExpanded,
         expandedList: _expanded,
+        onRefresh: onCategoryListRefresh,
+        refreshable: true,
       );
     } else if (snapshot.hasError) {
       return Text("Error: ${snapshot.error.toString()}");
@@ -139,5 +141,12 @@ class _CategoryMainState extends State<CategoryMain> {
     _categoryService
         .onCategoryEditedListener(editedCategory, category, _categories!)
         .then((value) => setState(() {}));
+  }
+
+  Future<void> onCategoryListRefresh() async {
+    _categoriesFuture = _categoryService.getAll();
+    _categoriesFuture.then((value) => ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text("Reloaded"))));
+    setState(() {});
   }
 }

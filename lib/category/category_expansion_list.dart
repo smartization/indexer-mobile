@@ -9,6 +9,8 @@ class CategoryExpansionList extends StatelessWidget {
   final Function(CategoryDTO) onCategoryDelete;
   final Function(CategoryDTO) onCategoryEdit;
   final List<bool> expandedList;
+  final bool refreshable;
+  final Future<void> Function()? onRefresh;
 
   const CategoryExpansionList(
       {Key? key,
@@ -16,19 +18,23 @@ class CategoryExpansionList extends StatelessWidget {
       this.onExpanded,
       expandedList,
       required this.onCategoryDelete,
-      required this.onCategoryEdit})
+      required this.onCategoryEdit,
+      this.onRefresh,
+      this.refreshable = false})
       : expandedList = expandedList ?? const [],
         categories = categories ?? const [],
         super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: ExpansionPanelList(
-        children: generateChildren(),
-        expansionCallback: onExpanded,
-      ),
-    );
+    if (!refreshable) {
+      return getList();
+    } else {
+      return RefreshIndicator(
+        onRefresh: onRefresh ?? () async {},
+        child: getList(),
+      );
+    }
   }
 
   List<ExpansionPanel> generateChildren() {
@@ -38,5 +44,15 @@ class CategoryExpansionList extends StatelessWidget {
         .map((e) => CategoryExpansionPanel.from(
             e.value, expandedList[e.key], onCategoryDelete, onCategoryEdit))
         .toList();
+  }
+
+  Widget getList() {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: ExpansionPanelList(
+        children: generateChildren(),
+        expansionCallback: onExpanded,
+      ),
+    );
   }
 }

@@ -34,19 +34,17 @@ class _CategoryTable extends StatelessWidget {
         padding: const EdgeInsets.all(10),
         child: Text(
           title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            height: 1,
-          ),
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              height: 1,
+              color: Colors.grey.shade800),
         ),
       ),
       Container(
         padding: const EdgeInsets.all(10),
         child: Text(
           value!,
-          style: const TextStyle(
-            height: 1,
-          ),
+          style: TextStyle(height: 1, color: Colors.grey.shade800),
         ),
       )
     ]);
