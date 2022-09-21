@@ -11,6 +11,8 @@ class ItemExpansionList extends StatelessWidget {
   final List<bool> expandedList;
   final Function(int?, ItemDTO) onIncrement;
   final Function(int?, ItemDTO) onDecrement;
+  final Future<void> Function()? onRefresh;
+  final bool refreshable;
 
   const ItemExpansionList(
       {Key? key,
@@ -20,24 +22,41 @@ class ItemExpansionList extends StatelessWidget {
       required this.onItemDelete,
       required this.onItemEdited,
       required this.onIncrement,
-      required this.onDecrement})
+      required this.onDecrement,
+      this.onRefresh,
+      this.refreshable = false})
       : expandedList = expandedList ?? const [],
         items = items ?? const [],
         super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    if (!refreshable) {
+      return getList();
+    } else {
+      return RefreshIndicator(
+        onRefresh: onRefresh ?? () async {},
+        child: getList(),
+      );
+    }
+  }
+
+  List<ExpansionPanel> generateChildren() {
+    return items
+        .asMap()
+        .entries
+        .map((e) => ItemExpansionPanel.from(e.value, expandedList[e.key],
+            onItemDelete, onItemEdited, onIncrement, onDecrement))
+        .toList();
+  }
+
+  getList() {
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: ExpansionPanelList(
         children: generateChildren(),
         expansionCallback: onExpanded,
       ),
     );
-  }
-
-  List<ExpansionPanel> generateChildren() {
-    return items.asMap().entries.map((e) => ItemExpansionPanel.from(e.value, expandedList[e.key],
-            onItemDelete, onItemEdited, onIncrement, onDecrement))
-        .toList();
   }
 }

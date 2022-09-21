@@ -106,6 +106,8 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         expandedList: _expanded,
         onDecrement: onDecrementOrIncrement,
         onIncrement: onDecrementOrIncrement,
+        onRefresh: onItemListRefresh,
+        refreshable: true,
       );
     } else if (snapshot.hasError) {
       return Text("Error: ${snapshot.error.toString()}");
@@ -245,5 +247,12 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         _selectedPlaces.add(place.id!);
       }
     });
+  }
+
+  Future<void> onItemListRefresh() async {
+    _itemsFuture = _itemService.getAllItems();
+    _itemsFuture.then((value) => ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text("Reloaded"))));
+    setState(() {});
   }
 }
