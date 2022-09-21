@@ -10,7 +10,9 @@ class _PlaceTable extends StatelessWidget {
     return Table(
       children: [
         TableRow(children: [
-          const Text("Name", style: TextStyle(fontWeight: FontWeight.bold)),
+          Text("Name",
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: Colors.grey.shade800)),
           Text(place.name)
         ]),
       ],

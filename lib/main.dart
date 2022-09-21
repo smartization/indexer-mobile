@@ -27,9 +27,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Indexer',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
+        theme: ThemeData.from(
+            colorScheme: ColorScheme.fromSwatch().copyWith(
+              primary: Color.fromARGB(255, 238, 154, 2),
+              secondary: Color.fromARGB(255, 119, 84, 71),
+              tertiary: Color.fromARGB(255, 182, 108, 0),
+              background: Colors.grey.shade50,
+            ),
+            textTheme: Theme.of(context)
+                .textTheme
+                .apply(bodyColor: Colors.grey.shade800)),
         home: FutureBuilder(
           builder: builder,
           future: _preferences,
