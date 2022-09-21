@@ -76,6 +76,8 @@ class _PlaceMainState extends State<PlaceMain> {
         onPlaceEdit: onPlaceEdit,
         onExpanded: onExpanded,
         expandedList: _expanded,
+        onRefresh: onPlaceListRefresh,
+        refreshable: true,
       );
     } else if (snapshot.hasError) {
       return Text("Error: ${snapshot.error.toString()}");
@@ -142,5 +144,12 @@ class _PlaceMainState extends State<PlaceMain> {
     _placeService
         .onPlaceEditedListener(editedPlace, place, _places!)
         .then((value) => setState(() {}));
+  }
+
+  Future<void> onPlaceListRefresh() async {
+    _placesFuture = _placeService.getAll();
+    _placesFuture.then((value) => ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text("Reloaded"))));
+    setState(() {});
   }
 }
