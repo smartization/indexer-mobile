@@ -51,6 +51,7 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
   final ExceptionResolver exceptionResolver;
   final bool addNew;
   late bool suggestionButtonEnabled = false;
+  bool _dataFetching = false;
   PlaceDTO? _selectedPlace;
   CategoryDTO? _selectedCategory;
   ItemDTO? item;
@@ -150,10 +151,13 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 5),
                           child: ElevatedButton(
-                              onPressed: suggestionButtonEnabled
-                                  ? getSuggestion
-                                  : null,
-                              child: const Text("Suggest inputs")),
+                              onPressed:
+                                  suggestionButtonEnabled && !_dataFetching
+                                      ? getSuggestion
+                                      : null,
+                              child: _dataFetching
+                                  ? const Text("Fetching...")
+                                  : const Text("Suggest inputs")),
                         )
                       ],
                     ),
@@ -219,14 +223,17 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
           const SnackBar(content: Text("Cannot suggest, barcode is empty")));
     } else {
       try {
-        BarcodeDTO barcodeDTO = await barcodeService.getSuggestion(barcode);
-        if (barcodeDTO.title != null) {
-          nameController.text = barcodeDTO.title!;
-        }
-        if (barcodeDTO.link != null) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text("Data obtained from: ${barcodeDTO.link}")));
-        }
+        setState(() => _dataFetching = true);
+        barcodeService.getSuggestion(barcode).then((barcodeDTO) {
+          if (barcodeDTO.title != null) {
+            nameController.text = barcodeDTO.title!;
+          }
+          if (barcodeDTO.link != null) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text("Fetched suggestion")));
+          }
+          setState(() => _dataFetching = false);
+        });
       } on Exception catch (e) {
         exceptionResolver.resolveAndShow(e);
       }
@@ -240,6 +247,6 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
   }
 
   onChecksumValidChange(bool isValid) {
-    setState(() => suggestionButtonEnabled = isValid);
+    setState(() => suggestionButtonEnabled = isValid && !_dataFetching);
   }
 }
