@@ -26,15 +26,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Indexer client',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: FutureBuilder(
-        builder: builder,
-        future: _preferences,
-      )
-    );
+      title: 'Indexer',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: FutureBuilder(
+          builder: builder,
+          future: _preferences,
+        ));
   }
 
   Widget builder(BuildContext context, AsyncSnapshot snapshot) {
