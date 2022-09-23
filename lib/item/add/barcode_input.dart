@@ -58,6 +58,7 @@ class _ItemBarcodeInputState extends State<ItemBarcodeInput> {
     String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
         '#ff6666', 'Cancel', true, ScanMode.BARCODE);
     controller.text = barcodeScanRes;
+    onChanged(barcodeScanRes);
   }
 
   void onChanged(String value) {
