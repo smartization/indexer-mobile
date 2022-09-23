@@ -164,6 +164,7 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
               onNewPlaceSelected: onNewPlaceSelected,
               selectedCategories: _selectedCategories,
               selectedPlaces: _selectedPlaces,
+              selectedSearchPhrase: _searchNamePhrase ?? "",
             ),
           );
         });

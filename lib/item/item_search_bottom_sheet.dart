@@ -12,6 +12,7 @@ class ItemSearchBottomSheet extends StatefulWidget {
   final List<num> selectedPlaces;
   final Function(CategoryDTO) onNewCategorySelected;
   final Function(PlaceDTO) onNewPlaceSelected;
+  final String selectedSearchPhrase;
 
   const ItemSearchBottomSheet(
       {Key? key,
@@ -19,7 +20,8 @@ class ItemSearchBottomSheet extends StatefulWidget {
       required this.selectedCategories,
       required this.onNewCategorySelected,
       required this.onNewPlaceSelected,
-      required this.selectedPlaces})
+      required this.selectedPlaces,
+      required this.selectedSearchPhrase})
       : super(key: key);
 
   @override
@@ -28,7 +30,8 @@ class ItemSearchBottomSheet extends StatefulWidget {
       selectedCategories: selectedCategories,
       onNewCategorySelected: onNewCategorySelected,
       onNewPlaceSelected: onNewPlaceSelected,
-      selectedPlaces: selectedPlaces);
+      selectedPlaces: selectedPlaces,
+      selectedSearchPhrase: selectedSearchPhrase);
 }
 
 class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
@@ -37,6 +40,7 @@ class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
   final List<num> selectedPlaces;
   final Function(CategoryDTO) onNewCategorySelected;
   final Function(PlaceDTO) onNewPlaceSelected;
+  final String selectedSearchPhrase;
   late List<CategoryDTO>? _categories;
   late List<PlaceDTO>? _places;
   late ExceptionResolver _exceptionResolver;
@@ -49,7 +53,8 @@ class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
       required this.selectedCategories,
       required this.onNewCategorySelected,
       required this.onNewPlaceSelected,
-      required this.selectedPlaces}) {
+      required this.selectedPlaces,
+      required this.selectedSearchPhrase}) {
     _categories = List.empty(growable: true);
     _places = List.empty(growable: true);
   }
@@ -87,7 +92,10 @@ class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
             "Search",
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-          _ItemNameSearchBox(onChanged: onNewSearchPhrase),
+          _ItemNameSearchBox(
+            onChanged: onNewSearchPhrase,
+            initialValue: selectedSearchPhrase,
+          ),
           createLabel("Categories"),
           _CategoryNameSearchBox(
               selectedCategories: selectedCategories,
@@ -131,8 +139,10 @@ class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
 
 class _ItemNameSearchBox extends StatelessWidget {
   final ValueChanged<String> onChanged;
+  final String initialValue;
 
-  const _ItemNameSearchBox({Key? key, required this.onChanged})
+  const _ItemNameSearchBox(
+      {Key? key, required this.onChanged, required this.initialValue})
       : super(key: key);
 
   @override
@@ -141,6 +151,7 @@ class _ItemNameSearchBox extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       child: TextFormField(
         onChanged: onChanged,
+        initialValue: initialValue,
         decoration: const InputDecoration(
           label: Text("Name"),
           icon: Icon(Icons.search),
