@@ -16,7 +16,7 @@ class _CategoryTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return Table(
         border: const TableBorder(
-            bottom: BorderSide(color: Colors.grey),
+            // bottom: BorderSide(color: Colors.grey),
             horizontalInside: BorderSide(color: Colors.grey)),
         children: _generateChildren());
   }
