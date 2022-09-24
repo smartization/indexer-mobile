@@ -147,9 +147,10 @@ class _PlaceMainState extends State<PlaceMain> {
   }
 
   Future<void> onPlaceListRefresh() async {
-    _placesFuture = _placeService.getAll();
-    _placesFuture.then((value) => ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text("Reloaded"))));
-    setState(() {});
+    setState(() {
+      _placesFuture = _placeService.getAll();
+      _placesFuture.then((value) => ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Reloaded"))));
+    });
   }
 }
