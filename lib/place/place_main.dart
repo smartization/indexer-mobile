@@ -125,6 +125,7 @@ class _PlaceMainState extends State<PlaceMain> {
         setState(() {
           _places!.remove(place);
           _expanded!.removeAt(idx);
+          _placesFuture = Future(() => _places!);
         });
       }
     }).catchError((error, stackTrace) {
