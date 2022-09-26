@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:indexer_client/common/barcode_input.dart';
 
 class ItemBarcodeInput extends StatefulWidget {
   final TextEditingController controller;
@@ -33,33 +33,39 @@ class _ItemBarcodeInputState extends State<ItemBarcodeInput> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: TextFormField(
-            controller: controller,
-            decoration: InputDecoration(
-                labelText: "Barcode",
-                helperText: _helperText,
-                helperMaxLines: 4),
-            keyboardType: TextInputType.number,
-            onChanged: onChanged,
-          ),
-        ),
-        TextButton(
-          onPressed: onCameraButtonPressed,
-          child: const Icon(Icons.camera),
-        )
-      ],
+    return BarcodeInput(
+      helperText: _helperText,
+      controller: controller,
+      onChanged: (ean) => onChanged(ean),
     );
+    // return Row(
+    //   children: [
+    //     Expanded(
+    //       child: TextFormField(
+    //         controller: controller,
+    //         decoration: InputDecoration(
+    //             labelText: "Barcode",
+    //             helperText: _helperText,
+    //             helperMaxLines: 4),
+    //         keyboardType: TextInputType.number,
+    //         onChanged: onChanged,
+    //       ),
+    //     ),
+    //     TextButton(
+    //       onPressed: onCameraButtonPressed,
+    //       child: const Icon(Icons.camera),
+    //     )
+    //   ],
+    // );
   }
 
-  void onCameraButtonPressed() async {
-    String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-        '#ff6666', 'Cancel', true, ScanMode.BARCODE);
-    controller.text = barcodeScanRes;
-    onChanged(barcodeScanRes);
-  }
+  //
+  // void onCameraButtonPressed() async {
+  //   String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
+  //       '#ff6666', 'Cancel', true, ScanMode.BARCODE);
+  //   controller.text = barcodeScanRes;
+  //   onChanged(barcodeScanRes);
+  // }
 
   void onChanged(String value) {
     onChecksumValidChange(validate(value));

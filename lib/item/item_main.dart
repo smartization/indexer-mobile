@@ -3,8 +3,8 @@ import 'package:indexer_client/common/exceptions/exception_resolver.dart';
 import 'package:indexer_client/common/loading_indicator.dart';
 import 'package:indexer_client/item/add/add_item_popup.dart';
 import 'package:indexer_client/item/barcode_service.dart';
-import 'package:indexer_client/item/item_search_bottom_sheet.dart';
 import 'package:indexer_client/item/item_service.dart';
+import 'package:indexer_client/item/search/item_search_bottom_sheet.dart';
 import 'package:indexer_client/state.dart';
 import 'package:provider/provider.dart';
 
@@ -29,6 +29,7 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
   late List<num> _selectedPlaces;
   List<ItemDTO>? _items;
   String? _searchNamePhrase;
+  String? _selectedEan;
 
   _ItemMainState() {
     _selectedCategories = List.empty(growable: true);
@@ -162,9 +163,11 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
               onNewSearchPhrase: searchBoxChanged,
               onNewCategorySelected: onNewCategorySelected,
               onNewPlaceSelected: onNewPlaceSelected,
+              onNewEan: onNewEan,
               selectedCategories: _selectedCategories,
               selectedPlaces: _selectedPlaces,
               selectedSearchPhrase: _searchNamePhrase ?? "",
+              selectedEan: _selectedEan ?? "",
             ),
           );
         });
@@ -227,6 +230,15 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         }
       }).toList();
     }
+    if (_selectedEan != null && _selectedEan!.isNotEmpty) {
+      finalItems = finalItems!.where((element) {
+        if (element.barcode == null) {
+          return false;
+        } else {
+          return element.barcode == _selectedEan;
+        }
+      }).toList();
+    }
     return finalItems;
   }
 
@@ -255,5 +267,9 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
     _itemsFuture.then((value) => ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text("Reloaded"))));
     setState(() {});
+  }
+
+  onNewEan(String newEan) {
+    setState(() => _selectedEan = newEan);
   }
 }
