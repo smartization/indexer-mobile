@@ -122,6 +122,7 @@ class _CategoryMainState extends State<CategoryMain> {
         setState(() {
           _categories!.remove(category);
           _expanded!.removeAt(idx);
+          _categoriesFuture = Future(() => _categories!);
         });
       }
     }).catchError((error, stackTrace) {
