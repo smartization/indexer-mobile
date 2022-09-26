@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:indexer_client/category/category_service.dart';
+import 'package:indexer_client/common/barcode_input.dart';
 import 'package:indexer_client/common/exceptions/exception_resolver.dart';
 
-import '../api/api_spec.swagger.dart';
-import '../common/exceptions/ApiException.dart';
-import '../place/place_service.dart';
+import '../../api/api_spec.swagger.dart';
+import '../../common/exceptions/ApiException.dart';
+import '../../place/place_service.dart';
+
+part "category_name_search.dart";
+
+part "ean_search.dart";
+
+part "item_name_search.dart";
+
+part "place_name_search.dart";
 
 class ItemSearchBottomSheet extends StatefulWidget {
   final ValueChanged<String> onNewSearchPhrase;
@@ -12,7 +21,9 @@ class ItemSearchBottomSheet extends StatefulWidget {
   final List<num> selectedPlaces;
   final Function(CategoryDTO) onNewCategorySelected;
   final Function(PlaceDTO) onNewPlaceSelected;
+  final Function(String) onNewEan;
   final String selectedSearchPhrase;
+  final String selectedEan;
 
   const ItemSearchBottomSheet(
       {Key? key,
@@ -21,7 +32,9 @@ class ItemSearchBottomSheet extends StatefulWidget {
       required this.onNewCategorySelected,
       required this.onNewPlaceSelected,
       required this.selectedPlaces,
-      required this.selectedSearchPhrase})
+      required this.selectedSearchPhrase,
+      required this.selectedEan,
+      required this.onNewEan})
       : super(key: key);
 
   @override
@@ -31,7 +44,9 @@ class ItemSearchBottomSheet extends StatefulWidget {
       onNewCategorySelected: onNewCategorySelected,
       onNewPlaceSelected: onNewPlaceSelected,
       selectedPlaces: selectedPlaces,
-      selectedSearchPhrase: selectedSearchPhrase);
+      selectedSearchPhrase: selectedSearchPhrase,
+      selectedEan: selectedEan,
+      onNewEan: onNewEan);
 }
 
 class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
@@ -40,7 +55,10 @@ class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
   final List<num> selectedPlaces;
   final Function(CategoryDTO) onNewCategorySelected;
   final Function(PlaceDTO) onNewPlaceSelected;
+  final Function(String) onNewEan;
   final String selectedSearchPhrase;
+  final String selectedEan;
+  final TextEditingController eanController = TextEditingController();
   late List<CategoryDTO>? _categories;
   late List<PlaceDTO>? _places;
   late ExceptionResolver _exceptionResolver;
@@ -54,9 +72,12 @@ class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
       required this.onNewCategorySelected,
       required this.onNewPlaceSelected,
       required this.selectedPlaces,
-      required this.selectedSearchPhrase}) {
+      required this.selectedSearchPhrase,
+      required this.selectedEan,
+      required this.onNewEan}) {
     _categories = List.empty(growable: true);
     _places = List.empty(growable: true);
+    eanController.text = selectedEan;
   }
 
   @override
@@ -96,6 +117,7 @@ class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
             onChanged: onNewSearchPhrase,
             initialValue: selectedSearchPhrase,
           ),
+          _EanSearch(initialValue: selectedEan, onNewEan: onNewEan),
           createLabel("Categories"),
           _CategoryNameSearchBox(
               selectedCategories: selectedCategories,
@@ -133,121 +155,6 @@ class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
       color: Colors.grey.shade300,
       indent: 30,
       endIndent: 30,
-    );
-  }
-}
-
-class _ItemNameSearchBox extends StatelessWidget {
-  final ValueChanged<String> onChanged;
-  final String initialValue;
-
-  const _ItemNameSearchBox(
-      {Key? key, required this.onChanged, required this.initialValue})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      child: TextFormField(
-        onChanged: onChanged,
-        initialValue: initialValue,
-        decoration: const InputDecoration(
-          label: Text("Name"),
-          icon: Icon(Icons.search),
-        ),
-      ),
-    );
-  }
-}
-
-class _CategoryNameSearchBox extends StatelessWidget {
-  final List<num> selectedCategories;
-  final List<CategoryDTO>? allCategories;
-  final Function(CategoryDTO) onNewSelected;
-
-  const _CategoryNameSearchBox(
-      {required this.selectedCategories,
-      required this.allCategories,
-      required this.onNewSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 10,
-      children: _generateChildren(),
-    );
-  }
-
-  List<Widget> _generateChildren() {
-    if (allCategories == null) {
-      return [const Text("Cannot load categories")];
-    } else {
-      return allCategories!.map((e) => _createSingleChild(e)).toList();
-    }
-  }
-
-  Widget _createSingleChild(CategoryDTO v) {
-    return ActionChip(
-      label: Text(v.name),
-      onPressed: () => onNewSelected(v),
-      avatar: selectedCategories.contains(v.id)
-          ? const Icon(
-              Icons.check_circle_outline,
-            )
-          : Icon(
-              Icons.check_circle_outline,
-              color: Colors.grey.shade500,
-            ),
-      backgroundColor: selectedCategories.contains(v.id)
-          ? Colors.blue.shade400
-          : Colors.grey.shade300,
-      // backgroundColor: selectedCategories.contains(v.id!) ? Colors.green : Colors.grey,
-    );
-  }
-}
-
-class _PlaceSearchBox extends StatelessWidget {
-  final List<num> selectedPlaces;
-  final List<PlaceDTO>? allPlaces;
-  final Function(PlaceDTO) onNewSelected;
-
-  const _PlaceSearchBox(
-      {required this.selectedPlaces,
-      required this.allPlaces,
-      required this.onNewSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 10,
-      children: _generateChildren(),
-    );
-  }
-
-  List<Widget> _generateChildren() {
-    if (allPlaces == null) {
-      return [const Text("Cannot load places")];
-    } else {
-      return allPlaces!.map((e) => _createSingleChild(e)).toList();
-    }
-  }
-
-  Widget _createSingleChild(PlaceDTO v) {
-    return ActionChip(
-      label: Text(v.name),
-      onPressed: () => onNewSelected(v),
-      avatar: selectedPlaces.contains(v.id)
-          ? const Icon(
-              Icons.check_circle_outline,
-            )
-          : Icon(
-              Icons.check_circle_outline,
-              color: Colors.grey.shade500,
-            ),
-      backgroundColor: selectedPlaces.contains(v.id)
-          ? Colors.blue.shade400
-          : Colors.grey.shade300,
     );
   }
 }
