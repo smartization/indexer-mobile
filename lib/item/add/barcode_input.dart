@@ -38,34 +38,8 @@ class _ItemBarcodeInputState extends State<ItemBarcodeInput> {
       controller: controller,
       onChanged: (ean) => onChanged(ean),
     );
-    // return Row(
-    //   children: [
-    //     Expanded(
-    //       child: TextFormField(
-    //         controller: controller,
-    //         decoration: InputDecoration(
-    //             labelText: "Barcode",
-    //             helperText: _helperText,
-    //             helperMaxLines: 4),
-    //         keyboardType: TextInputType.number,
-    //         onChanged: onChanged,
-    //       ),
-    //     ),
-    //     TextButton(
-    //       onPressed: onCameraButtonPressed,
-    //       child: const Icon(Icons.camera),
-    //     )
-    //   ],
-    // );
   }
 
-  //
-  // void onCameraButtonPressed() async {
-  //   String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-  //       '#ff6666', 'Cancel', true, ScanMode.BARCODE);
-  //   controller.text = barcodeScanRes;
-  //   onChanged(barcodeScanRes);
-  // }
 
   void onChanged(String value) {
     onChecksumValidChange(validate(value));
