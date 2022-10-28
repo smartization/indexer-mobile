@@ -9,6 +9,7 @@ import 'package:indexer_client/state.dart';
 import 'package:provider/provider.dart';
 
 import '../api/api_spec.swagger.dart';
+import '../common/firebase.dart';
 import '../drawer/drawer.dart';
 import 'item_expansion_list.dart';
 
@@ -58,6 +59,9 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    // this token should be synced here as this is first place where
+    // application has loaded net stack
+    FirebaseIntegration.syncToken(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Items"),
@@ -84,7 +88,7 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         ],
       ),
       drawer:
-          const CommonDrawer(), // This trailing comma makes auto-formatting nicer for build methods.
+      const CommonDrawer(), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
@@ -209,7 +213,9 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
     List<ItemDTO>? finalItems = items;
     if (_searchNamePhrase != null && _searchNamePhrase!.isNotEmpty) {
       finalItems = finalItems!
-          .where((element) => element.name.contains(_searchNamePhrase!))
+          .where((element) => element.name
+              .toLowerCase()
+              .contains(_searchNamePhrase!.toLowerCase()))
           .toList(growable: true);
     }
     if (_selectedCategories.isNotEmpty) {
@@ -235,7 +241,7 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         if (element.barcode == null) {
           return false;
         } else {
-          return element.barcode == _selectedEan;
+          return element.barcode!.contains(_selectedEan!);
         }
       }).toList();
     }

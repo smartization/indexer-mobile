@@ -8,11 +8,8 @@ import '../../common/exceptions/ApiException.dart';
 import '../../place/place_service.dart';
 
 part "category_name_search.dart";
-
 part "ean_search.dart";
-
 part "item_name_search.dart";
-
 part "place_name_search.dart";
 
 class ItemSearchBottomSheet extends StatefulWidget {
@@ -58,7 +55,6 @@ class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
   final Function(String) onNewEan;
   final String selectedSearchPhrase;
   final String selectedEan;
-  final TextEditingController eanController = TextEditingController();
   late List<CategoryDTO>? _categories;
   late List<PlaceDTO>? _places;
   late ExceptionResolver _exceptionResolver;
@@ -77,7 +73,6 @@ class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
       required this.onNewEan}) {
     _categories = List.empty(growable: true);
     _places = List.empty(growable: true);
-    eanController.text = selectedEan;
   }
 
   @override
