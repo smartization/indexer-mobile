@@ -222,21 +222,20 @@ class _ModifyItemPopupState extends State<ModifyItemPopup> {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Cannot suggest, barcode is empty")));
     } else {
-      try {
-        setState(() => _dataFetching = true);
-        barcodeService.getSuggestion(barcode).then((barcodeDTO) {
-          if (barcodeDTO.title != null) {
-            nameController.text = barcodeDTO.title!;
-          }
-          if (barcodeDTO.link != null) {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text("Fetched suggestion")));
-          }
-          setState(() => _dataFetching = false);
-        });
-      } on Exception catch (e) {
-        exceptionResolver.resolveAndShow(e);
-      }
+      setState(() => _dataFetching = true);
+      barcodeService.getSuggestion(barcode).then((barcodeDTO) {
+        if (barcodeDTO.title != null) {
+          nameController.text = barcodeDTO.title!;
+        }
+        if (barcodeDTO.link != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Fetched suggestion")));
+        }
+        setState(() => _dataFetching = false);
+      }).catchError((error) {
+        setState(() => _dataFetching = false);
+        exceptionResolver.resolveAndShow(error);
+      }, test: (error) => error is ApiException);
     }
   }
 
