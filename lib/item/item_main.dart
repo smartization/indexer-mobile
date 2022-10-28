@@ -213,7 +213,9 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
     List<ItemDTO>? finalItems = items;
     if (_searchNamePhrase != null && _searchNamePhrase!.isNotEmpty) {
       finalItems = finalItems!
-          .where((element) => element.name.contains(_searchNamePhrase!))
+          .where((element) => element.name
+              .toLowerCase()
+              .contains(_searchNamePhrase!.toLowerCase()))
           .toList(growable: true);
     }
     if (_selectedCategories.isNotEmpty) {
