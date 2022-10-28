@@ -239,7 +239,7 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         if (element.barcode == null) {
           return false;
         } else {
-          return element.barcode == _selectedEan;
+          return element.barcode!.contains(_selectedEan!);
         }
       }).toList();
     }
