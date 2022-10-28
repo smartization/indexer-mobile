@@ -3,16 +3,24 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:indexer_client/common/dto_service.dart';
 import 'package:indexer_client/settings/settings_main.dart';
-import 'package:indexer_client/state.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../firebase_options.dart';
 
 class FirebaseIntegration {
   static void init() async {
-    await Firebase.initializeApp(
+    var firebase = await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
+    );
+    var messaging = FirebaseMessaging.instance;
+    await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
     );
   }
 
