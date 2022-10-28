@@ -32,8 +32,10 @@ class FirebaseIntegration {
     String oldToken =
         sharedPreferences.getString(SettingsKeys.fcmToken.toString()) ??
             "missing-old-token";
-    sharedPreferences.setString(SettingsKeys.fcmToken.toString(), fcmToken);
-    dtoService.getApi().firebaseTokenOldTokenUpdateNewTokenPatch(
-        oldToken: oldToken, newToken: fcmToken);
+    if (oldToken != fcmToken) {
+      sharedPreferences.setString(SettingsKeys.fcmToken.toString(), fcmToken);
+      dtoService.getApi().firebaseTokenOldTokenUpdateNewTokenPatch(
+          oldToken: oldToken, newToken: fcmToken);
+    }
   }
 }
