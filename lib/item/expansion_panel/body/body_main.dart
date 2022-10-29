@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:indexer_client/common/item_warning_resolver.dart';
 
 import '../../../api/api_spec.swagger.dart';
 
 part "body_table.dart";
+
 part "bottom_buttons.dart";
+
+part 'item_warning_text.dart';
 
 part "quantity_selector.dart";
 
@@ -29,6 +33,7 @@ class ItemExpansionPanelBody extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         child: Column(
           children: [
+            _ItemWarningText(item: item),
             _ItemTable(item: item),
             _QuantitySelector(
                 onIncrement: onIncrement,
