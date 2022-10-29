@@ -11,14 +11,18 @@ class ItemWarningResolver {
 
   static Text createReason(ItemDTO item) {
     if (item.dueDate != null && item.dueDate!.isBefore(DateTime.now())) {
-      return const Text(
-        "Item is after due date",
-        style: TextStyle(
-          color: Colors.redAccent,
-          fontStyle: FontStyle.italic,
-        ),
-      );
+      return _generateText("Item is after due date", Colors.redAccent);
     }
     return const Text("");
+  }
+
+  static Text _generateText(String text, Color color) {
+    return Text(
+      text,
+      style: TextStyle(
+        color: color,
+        fontStyle: FontStyle.italic,
+      ),
+    );
   }
 }
