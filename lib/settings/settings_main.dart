@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:indexer_client/settings/server_address_text_field.dart';
 import 'package:indexer_client/state.dart';
@@ -37,7 +38,7 @@ class _SettingsMainState extends State<SettingsMain> {
                 child: Column(
                   children: [
                     ServerAddressTextField(
-                      controller: _serverAddressEditorController
+                        controller: _serverAddressEditorController
                     ),
                     SubmitButton(onPressed: onSubmit)
                   ],
@@ -58,6 +59,9 @@ class _SettingsMainState extends State<SettingsMain> {
       final String serverAddress = _serverAddressEditorController.value.text;
       updateAppState(serverAddress);
       savePreferences(serverAddress);
+      // this is do to create new token for new server
+      // this is done for legacy token to server submitting method
+      _invalidateFcmToken();
     }
   }
 
@@ -68,7 +72,12 @@ class _SettingsMainState extends State<SettingsMain> {
 
   void updateAppState(String serverAddress) {
     setState(() {
-      Provider.of<AppState>(context, listen: false).updateServerAddress(serverAddress);
+      Provider.of<AppState>(context, listen: false)
+          .updateServerAddress(serverAddress);
     });
+  }
+
+  void _invalidateFcmToken() {
+    FirebaseMessaging.instance.deleteToken();
   }
 }
