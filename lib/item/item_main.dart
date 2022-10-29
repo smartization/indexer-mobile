@@ -28,6 +28,7 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
   late ExceptionResolver _exceptionResolver;
   late List<num> _selectedCategories;
   late List<num> _selectedPlaces;
+  int? _selectedDueDate;
   List<ItemDTO>? _items;
   String? _searchNamePhrase;
   String? _selectedEan;
@@ -45,6 +46,7 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
     _itemService =
         ItemService(context: context, exceptionResolver: _exceptionResolver);
     _itemsFuture = _itemService.getAllItems();
+    _selectedDueDate = 0;
   }
 
   @override
@@ -168,10 +170,12 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
               onNewCategorySelected: onNewCategorySelected,
               onNewPlaceSelected: onNewPlaceSelected,
               onNewEan: onNewEan,
+              onNewDueDate: onNewDueDate,
               selectedCategories: _selectedCategories,
               selectedPlaces: _selectedPlaces,
               selectedSearchPhrase: _searchNamePhrase ?? "",
               selectedEan: _selectedEan ?? "",
+              selectedDueDate: _selectedDueDate!,
             ),
           );
         });
@@ -245,6 +249,18 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         }
       }).toList();
     }
+    if (_selectedDueDate! > 0) {
+      finalItems = finalItems!.where((element) {
+        if (element.dueDate == null) {
+          return false;
+        } else {
+          DateTime dueDate = element.dueDate!;
+          DateTime endDate =
+              DateTime.now().add(Duration(days: _selectedDueDate!));
+          return dueDate.isBefore(endDate);
+        }
+      }).toList();
+    }
     return finalItems;
   }
 
@@ -277,5 +293,9 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
 
   onNewEan(String newEan) {
     setState(() => _selectedEan = newEan);
+  }
+
+  onNewDueDate(int newDueDate) {
+    setState(() => _selectedDueDate = newDueDate);
   }
 }
