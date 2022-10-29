@@ -8,6 +8,9 @@ import '../../common/exceptions/ApiException.dart';
 import '../../place/place_service.dart';
 
 part "category_name_search.dart";
+
+part 'due_date_search.dart';
+
 part "ean_search.dart";
 part "item_name_search.dart";
 part "place_name_search.dart";
@@ -19,8 +22,10 @@ class ItemSearchBottomSheet extends StatefulWidget {
   final Function(CategoryDTO) onNewCategorySelected;
   final Function(PlaceDTO) onNewPlaceSelected;
   final Function(String) onNewEan;
+  final Function(int) onNewDueDate;
   final String selectedSearchPhrase;
   final String selectedEan;
+  final int selectedDueDate;
 
   const ItemSearchBottomSheet(
       {Key? key,
@@ -31,7 +36,9 @@ class ItemSearchBottomSheet extends StatefulWidget {
       required this.selectedPlaces,
       required this.selectedSearchPhrase,
       required this.selectedEan,
-      required this.onNewEan})
+      required this.onNewEan,
+      required this.onNewDueDate,
+      required this.selectedDueDate})
       : super(key: key);
 
   @override
@@ -43,7 +50,9 @@ class ItemSearchBottomSheet extends StatefulWidget {
       selectedPlaces: selectedPlaces,
       selectedSearchPhrase: selectedSearchPhrase,
       selectedEan: selectedEan,
-      onNewEan: onNewEan);
+      onNewEan: onNewEan,
+      onNewDueDate: onNewDueDate,
+      selectedDueDate: selectedDueDate);
 }
 
 class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
@@ -53,8 +62,10 @@ class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
   final Function(CategoryDTO) onNewCategorySelected;
   final Function(PlaceDTO) onNewPlaceSelected;
   final Function(String) onNewEan;
+  final Function(int) onNewDueDate;
   final String selectedSearchPhrase;
   final String selectedEan;
+  int selectedDueDate;
   late List<CategoryDTO>? _categories;
   late List<PlaceDTO>? _places;
   late ExceptionResolver _exceptionResolver;
@@ -70,7 +81,9 @@ class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
       required this.selectedPlaces,
       required this.selectedSearchPhrase,
       required this.selectedEan,
-      required this.onNewEan}) {
+      required this.onNewEan,
+      required this.onNewDueDate,
+      required this.selectedDueDate}) {
     _categories = List.empty(growable: true);
     _places = List.empty(growable: true);
   }
@@ -113,6 +126,13 @@ class _ItemSearchBottomSheetState extends State<ItemSearchBottomSheet> {
             initialValue: selectedSearchPhrase,
           ),
           _EanSearch(initialValue: selectedEan, onNewEan: onNewEan),
+          _DueDateSearch(
+            onChanged: (dueDate) {
+              onNewDueDate(dueDate);
+              setState(() => selectedDueDate = dueDate);
+            },
+            initialValue: selectedDueDate,
+          ),
           createLabel("Categories"),
           _CategoryNameSearchBox(
               selectedCategories: selectedCategories,
