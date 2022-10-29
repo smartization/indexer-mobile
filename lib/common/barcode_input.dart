@@ -23,9 +23,13 @@ class BarcodeInput extends StatelessWidget {
     }
     if (initialValue != null) {
       controller = TextEditingController(text: initialValue!);
+      controller?.selection =
+          TextSelection.collapsed(offset: initialValue!.length);
     }
-    controller?.selection =
-        TextSelection.collapsed(offset: initialValue!.length);
+    if (controller != null) {
+      controller?.selection =
+          TextSelection.collapsed(offset: controller!.text.length);
+    }
   }
 
   @override

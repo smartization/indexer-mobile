@@ -3,6 +3,8 @@ import 'package:indexer_client/common/exceptions/exception_resolver.dart';
 import 'package:indexer_client/common/loading_indicator.dart';
 import 'package:indexer_client/item/add/add_item_popup.dart';
 import 'package:indexer_client/item/barcode_service.dart';
+import 'package:indexer_client/item/filter/item_order_bottom_sheet.dart';
+import 'package:indexer_client/item/filter/orders.dart';
 import 'package:indexer_client/item/item_service.dart';
 import 'package:indexer_client/item/search/item_search_bottom_sheet.dart';
 import 'package:indexer_client/state.dart';
@@ -21,20 +23,26 @@ class ItemMain extends StatefulWidget {
 }
 
 class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
-  List<bool>? _expanded;
+  Map<ItemDTO, bool>? _expanded;
   late ItemService _itemService;
   late BarcodeService _barcodeService;
   late Future<List<ItemDTO>> _itemsFuture;
   late ExceptionResolver _exceptionResolver;
   late List<num> _selectedCategories;
   late List<num> _selectedPlaces;
+  int? _selectedDueDate;
   List<ItemDTO>? _items;
   String? _searchNamePhrase;
   String? _selectedEan;
+  ItemOrderColumn? _selectedOrderColumn;
+  ItemSortOrder? _selectedSortOrder;
 
   _ItemMainState() {
     _selectedCategories = List.empty(growable: true);
     _selectedPlaces = List.empty(growable: true);
+    _selectedDueDate = 0;
+    _selectedOrderColumn = ItemOrderColumn.NAME;
+    _selectedSortOrder = ItemSortOrder.ASCENDING;
   }
 
   @override
@@ -74,41 +82,50 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Container(
-            padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
             child: FloatingActionButton(
                 onPressed: onAddButtonPressed,
                 tooltip: 'Add Item',
                 child: const Icon(Icons.add)),
           ),
+          Container(
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+            child: FloatingActionButton(
+              onPressed: onSearchButtonPressed,
+              tooltip: "Search item",
+              child: const Icon(Icons.search),
+            ),
+          ),
           FloatingActionButton(
-            onPressed: onSearchButtonPressed,
-            tooltip: "Search item",
-            child: const Icon(Icons.search),
+            onPressed: onOrderButtonPressed,
+            tooltip: "Order item",
+            child: const Icon(Icons.sort_by_alpha),
           )
         ],
       ),
       drawer:
-      const CommonDrawer(), // This trailing comma makes auto-formatting nicer for build methods.
+          const CommonDrawer(), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
-  void onExpanded(int panelIndex, bool isExpanded) {
-    setState(() => {
-      _expanded![panelIndex] = !isExpanded
+  void onExpanded(ItemDTO item, bool isExpanded) {
+    setState(() {
+      _expanded![item] = !isExpanded;
     });
   }
 
-  Widget futureBuilder(BuildContext context, AsyncSnapshot<List<ItemDTO>> snapshot) {
+  Widget futureBuilder(
+      BuildContext context, AsyncSnapshot<List<ItemDTO>> snapshot) {
     if (snapshot.hasData) {
       _items = snapshot.data!;
       // sets _expanded only for first data fetch from api
-      _expanded ??= List.filled(_items!.length, false, growable: true);
+      _expanded ??= _items!.asMap().map((key, value) => MapEntry(value, false));
       return ItemExpansionList(
-        items: filterItems(_items),
+        items: _sortItems(filterItems(_items)),
         onExpanded: onExpanded,
         onItemDelete: onItemDeleted,
         onItemEdited: onItemEdited,
-        expandedList: _expanded,
+        expanded: _expanded!,
         onDecrement: onDecrementOrIncrement,
         onIncrement: onDecrementOrIncrement,
         onRefresh: onItemListRefresh,
@@ -141,12 +158,9 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         _itemsFuture = Future.value(_items);
         // if some new item was added then it is as last item on list
         // add it to _expanded register
-        if (_expanded!.length != _items!.length) {
-          _expanded!.addAll(
-              List.filled((_items!.length - _expanded!.length).abs(), false));
-          ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text("Saving")));
-        }
+        _expanded!.putIfAbsent(value!, () => false);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Saving")));
       });
     });
   }
@@ -168,10 +182,12 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
               onNewCategorySelected: onNewCategorySelected,
               onNewPlaceSelected: onNewPlaceSelected,
               onNewEan: onNewEan,
+              onNewDueDate: onNewDueDate,
               selectedCategories: _selectedCategories,
               selectedPlaces: _selectedPlaces,
               selectedSearchPhrase: _searchNamePhrase ?? "",
               selectedEan: _selectedEan ?? "",
+              selectedDueDate: _selectedDueDate!,
             ),
           );
         });
@@ -245,6 +261,18 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         }
       }).toList();
     }
+    if (_selectedDueDate! > 0) {
+      finalItems = finalItems!.where((element) {
+        if (element.dueDate == null) {
+          return false;
+        } else {
+          DateTime dueDate = element.dueDate!;
+          DateTime endDate =
+              DateTime.now().add(Duration(days: _selectedDueDate!));
+          return dueDate.isBefore(endDate);
+        }
+      }).toList();
+    }
     return finalItems;
   }
 
@@ -277,5 +305,85 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
 
   onNewEan(String newEan) {
     setState(() => _selectedEan = newEan);
+  }
+
+  onNewDueDate(int newDueDate) {
+    setState(() => _selectedDueDate = newDueDate);
+  }
+
+  void onOrderButtonPressed() {
+    showModalBottomSheet(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(20),
+          ),
+        ),
+        clipBehavior: Clip.antiAliasWithSaveLayer,
+        builder: (ctx) {
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+            child: ItemOrderBottomSheet(
+              selectedOrderColumn: _selectedOrderColumn ?? ItemOrderColumn.NAME,
+              selectedSortOrder: _selectedSortOrder ?? ItemSortOrder.DESCENDING,
+              onNewOrderColumn: _onNewOrderColumn,
+              onNewSortOrder: _onNewSortOrderColumn,
+            ),
+          );
+        });
+  }
+
+  _onNewOrderColumn(ItemOrderColumn? column) {
+    setState(() => _selectedOrderColumn = column);
+  }
+
+  _onNewSortOrderColumn(ItemSortOrder? sort) {
+    setState(() => _selectedSortOrder = sort);
+  }
+
+  _sortItems(List<ItemDTO>? items) {
+    items!.sort((itemA, itemB) {
+      if (_selectedOrderColumn == ItemOrderColumn.NAME) {
+        return _sortByName(itemA, itemB);
+      } else {
+        return _sortByDate(itemA, itemB);
+      }
+    });
+    return items;
+  }
+
+  _sortByName(ItemDTO itemA, ItemDTO itemB) {
+    String itemAName = itemA.name.toLowerCase();
+    String itemBName = itemB.name.toLowerCase();
+    if (_selectedSortOrder == ItemSortOrder.DESCENDING) {
+      return -itemAName.compareTo(itemBName);
+    } else {
+      return itemAName.compareTo(itemBName);
+    }
+  }
+
+  _sortByDate(ItemDTO itemA, ItemDTO itemB) {
+    DateTime? itemADate = itemA.dueDate;
+    DateTime? itemBDate = itemB.dueDate;
+    if (itemADate == null && itemBDate == null) {
+      return 0;
+    }
+    if (_selectedSortOrder == ItemSortOrder.DESCENDING) {
+      if (itemADate == null) {
+        return 1;
+      }
+      if (itemBDate == null) {
+        return -1;
+      }
+      return -itemADate.compareTo(itemBDate);
+    } else {
+      if (itemADate == null) {
+        return 1;
+      }
+      if (itemBDate == null) {
+        return -1;
+      }
+      return itemADate.compareTo(itemBDate);
+    }
   }
 }
