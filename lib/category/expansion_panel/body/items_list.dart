@@ -16,7 +16,7 @@ class _ItemsListState extends State<_ItemsList> {
   late ItemService _itemService;
   late BarcodeService _barcodeService;
   late ExceptionResolver _exceptionResolver;
-  List<bool>? _expanded;
+  Map<ItemDTO, bool>? _expanded;
 
   _ItemsListState({required this.category});
 
@@ -37,13 +37,13 @@ class _ItemsListState extends State<_ItemsList> {
   Widget builder(BuildContext context, AsyncSnapshot<List<ItemDTO>> snapshot) {
     if (snapshot.hasData) {
       _items = snapshot.data;
-      _expanded ??= List.filled(_items!.length, false, growable: true);
+      _expanded ??= _items!.asMap().map((key, value) => MapEntry(value, false));
       return Container(
           padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
           child: ItemExpansionList(
-            items: _items,
+            items: _items!,
             onExpanded: onExpanded,
-            expandedList: _expanded,
+            expanded: _expanded!,
             onItemDelete: onItemDelete,
             onItemEdited: onItemEdit,
             onIncrement: onDecrementOrIncrement,
@@ -56,9 +56,9 @@ class _ItemsListState extends State<_ItemsList> {
     }
   }
 
-  void onExpanded(int panelIndex, bool isExpanded) {
+  void onExpanded(ItemDTO item, bool isExpanded) {
     setState(() {
-      _expanded![panelIndex] = !isExpanded;
+      _expanded![item] = !isExpanded;
     });
   }
 
