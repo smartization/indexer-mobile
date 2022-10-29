@@ -5,10 +5,10 @@ import 'expansion_panel/item_expansion_panel.dart';
 
 class ItemExpansionList extends StatelessWidget {
   final List<ItemDTO> items;
-  final ExpansionPanelCallback? onExpanded;
+  final Function(ItemDTO, bool)? onExpanded;
   final Function(ItemDTO) onItemDelete;
   final Function(ItemDTO) onItemEdited;
-  final List<bool> expandedList;
+  final Map<ItemDTO, bool> expanded;
   final Function(int?, ItemDTO) onIncrement;
   final Function(int?, ItemDTO) onDecrement;
   final Future<void> Function()? onRefresh;
@@ -16,7 +16,7 @@ class ItemExpansionList extends StatelessWidget {
 
   const ItemExpansionList(
       {Key? key,
-      required items,
+      required this.items,
       this.onExpanded,
       expandedList,
       required this.onItemDelete,
@@ -24,10 +24,9 @@ class ItemExpansionList extends StatelessWidget {
       required this.onIncrement,
       required this.onDecrement,
       this.onRefresh,
-      this.refreshable = false})
-      : expandedList = expandedList ?? const [],
-        items = items ?? const [],
-        super(key: key);
+      this.refreshable = false,
+      required this.expanded})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -43,10 +42,8 @@ class ItemExpansionList extends StatelessWidget {
 
   List<ExpansionPanel> generateChildren() {
     return items
-        .asMap()
-        .entries
-        .map((e) => ItemExpansionPanel.from(e.value, expandedList[e.key],
-            onItemDelete, onItemEdited, onIncrement, onDecrement))
+        .map((e) => ItemExpansionPanel.from(e, expanded[e]!, onItemDelete,
+            onItemEdited, onIncrement, onDecrement))
         .toList();
   }
 
@@ -55,8 +52,15 @@ class ItemExpansionList extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       child: ExpansionPanelList(
         children: generateChildren(),
-        expansionCallback: onExpanded,
+        expansionCallback: _onExpanded,
       ),
     );
+  }
+
+  void _onExpanded(int panelIndex, bool isExpanded) {
+    ItemDTO item = items.elementAt(panelIndex);
+    if (onExpanded != null) {
+      onExpanded!(item, isExpanded);
+    }
   }
 }

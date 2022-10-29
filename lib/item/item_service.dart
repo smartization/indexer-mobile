@@ -47,13 +47,13 @@ class ItemService extends DTOService {
   }
 
   Future<void> itemDeleteListener(
-      ItemDTO item, List<ItemDTO> items, List<bool> expanded) async {
+      ItemDTO item, List<ItemDTO> items, Map<ItemDTO, bool> expanded) async {
     await delete(item);
     try {
       int idx = items.indexOf(item);
       if (idx >= 0) {
         items.remove(item);
-        expanded.removeAt(idx);
+        expanded.remove(item);
       }
     } on ApiException catch (error) {
       exceptionResolver.resolveAndShow(error);
