@@ -11,6 +11,11 @@ class ItemService extends DTOService {
 
   ItemService({required super.context, required this.exceptionResolver});
 
+  Future<ItemDTO> getOneItem(int id) async {
+    Response<ItemDTO> response = await getApi().itemsIdGet(id: id);
+    return resolveResponse(response) as ItemDTO;
+  }
+
   Future<List<ItemDTO>> getAllItems() async {
     Response<List<ItemDTO>> response = await getApi().itemsGet();
     return resolveResponse(response) as List<ItemDTO>;
@@ -50,25 +55,34 @@ class ItemService extends DTOService {
       ItemDTO item, List<ItemDTO> items, Map<ItemDTO, bool> expanded) async {
     await delete(item);
     try {
-      int idx = items.indexOf(item);
-      if (idx >= 0) {
-        items.remove(item);
-        expanded.remove(item);
-      }
+      dropItem(item, items, expanded);
     } on ApiException catch (error) {
       exceptionResolver.resolveAndShow(error);
     }
   }
 
-  Future<void> onItemEditedListener(
-      Future<ItemDTO?> editedItem, ItemDTO oldItem, List<ItemDTO> items,
+  void dropItem(
+      ItemDTO item, List<ItemDTO> items, Map<ItemDTO, bool> expanded) {
+    int idx = items.indexOf(item);
+    if (idx >= 0) {
+      items.remove(item);
+      expanded.remove(item);
+    }
+  }
+
+  void dropItemById(
+      int itemId, List<ItemDTO> items, Map<ItemDTO, bool> expanded) {
+    ItemDTO item = items.firstWhere((element) => element.id == itemId);
+    dropItem(item, items, expanded);
+  }
+
+  Future<void> onItemEditedListener(Future<ItemDTO?> editedItem,
+      ItemDTO oldItem, List<ItemDTO> items, Map<ItemDTO, bool> expanded,
       {showSaveNotification = true}) async {
     ItemDTO? item = await editedItem;
     try {
       if (item != null) {
-        int idx = items.indexOf(oldItem);
-        items.removeAt(idx);
-        items.insert(idx, item);
+        swapItems(items, item, expanded, oldItem);
         if (showSaveNotification) {
           ScaffoldMessenger.of(context)
               .showSnackBar(const SnackBar(content: Text("Saving")));
@@ -82,10 +96,35 @@ class ItemService extends DTOService {
     }
   }
 
-  Future<void> saveAndUpdateList(
-      ItemDTO newItem, ItemDTO oldItem, List<ItemDTO> items) async {
+  void swapItems(List<ItemDTO> items, ItemDTO item, Map<ItemDTO, bool> expanded,
+      ItemDTO oldItem) {
+    int idx = items.indexOf(oldItem);
+    items.removeAt(idx);
+    items.insert(idx, item);
+    expanded[item] = expanded[oldItem]!;
+    expanded.remove(oldItem);
+  }
+
+  Future<void> saveAndUpdateList(ItemDTO newItem, ItemDTO oldItem,
+      List<ItemDTO> items, Map<ItemDTO, bool> expanded) async {
     Future<ItemDTO> futureItem = updateItem(newItem);
-    return onItemEditedListener(futureItem, oldItem, items,
+    return onItemEditedListener(futureItem, oldItem, items, expanded,
         showSaveNotification: false);
+  }
+
+  Future<void> refreshItem(
+      List<ItemDTO> items, Map<ItemDTO, bool> expanded, int itemId) async {
+    try {
+      ItemDTO newItem = await getOneItem(itemId);
+      try {
+        ItemDTO oldItem = items.firstWhere((element) => element.id == itemId);
+        swapItems(items, newItem, expanded, oldItem);
+      } on StateError {
+        items.add(newItem);
+        expanded[newItem] = false;
+      }
+    } on ApiException catch (error) {
+      exceptionResolver.resolveAndShow(error);
+    }
   }
 }
