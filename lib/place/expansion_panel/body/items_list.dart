@@ -79,14 +79,14 @@ class _ItemsListState extends State<_ItemsList> {
               item: item,
             ));
     _itemService
-        .onItemEditedListener(editedItem, item, _items!)
+        .onItemEditedListener(editedItem, item, _items!, _expanded!)
         .then((_) => setState(() {}));
   }
 
   onDecrementOrIncrement(int? value, ItemDTO item) {
     ItemDTO newItem = $ItemDTOExtension(item).copyWith(quantity: value!);
     _itemService
-        .saveAndUpdateList(newItem, item, _items!)
+        .saveAndUpdateList(newItem, item, _items!, _expanded!)
         .then((value) => setState(() {}));
   }
 }

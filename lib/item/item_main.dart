@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:indexer_client/common/exceptions/exception_resolver.dart';
 import 'package:indexer_client/common/loading_indicator.dart';
@@ -53,6 +54,7 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
     _itemService =
         ItemService(context: context, exceptionResolver: _exceptionResolver);
     _itemsFuture = _itemService.getAllItems();
+    FirebaseMessaging.onMessage.listen(messageListener);
   }
 
   @override
@@ -104,7 +106,7 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         ],
       ),
       drawer:
-          const CommonDrawer(), // This trailing comma makes auto-formatting nicer for build methods.
+      const CommonDrawer(), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
@@ -114,8 +116,7 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
     });
   }
 
-  Widget futureBuilder(
-      BuildContext context, AsyncSnapshot<List<ItemDTO>> snapshot) {
+  Widget futureBuilder(BuildContext context, AsyncSnapshot<List<ItemDTO>> snapshot) {
     if (snapshot.hasData) {
       _items = snapshot.data!;
       // sets _expanded only for first data fetch from api
@@ -203,21 +204,21 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
     Future<ItemDTO?> editedItem = showDialog<ItemDTO>(
         context: context,
         builder: (ctx) => ModifyItemPopup(
-              itemService: _itemService,
-              barcodeService: _barcodeService,
-              exceptionResolver: _exceptionResolver,
-              addNew: false,
-              item: item,
-            ));
+          itemService: _itemService,
+          barcodeService: _barcodeService,
+          exceptionResolver: _exceptionResolver,
+          addNew: false,
+          item: item,
+        ));
     _itemService
-        .onItemEditedListener(editedItem, item, _items!)
+        .onItemEditedListener(editedItem, item, _items!, _expanded!)
         .then((value) => setState(() {}));
   }
 
   onDecrementOrIncrement(int? value, ItemDTO item) {
     ItemDTO newItem = $ItemDTOExtension(item).copyWith(quantity: value!);
     _itemService
-        .saveAndUpdateList(newItem, item, _items!)
+        .saveAndUpdateList(newItem, item, _items!, _expanded!)
         .then((value) => setState(() {}));
   }
 
@@ -230,8 +231,8 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
     if (_searchNamePhrase != null && _searchNamePhrase!.isNotEmpty) {
       finalItems = finalItems!
           .where((element) => element.name
-              .toLowerCase()
-              .contains(_searchNamePhrase!.toLowerCase()))
+          .toLowerCase()
+          .contains(_searchNamePhrase!.toLowerCase()))
           .toList(growable: true);
     }
     if (_selectedCategories.isNotEmpty) {
@@ -268,7 +269,7 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         } else {
           DateTime dueDate = element.dueDate!;
           DateTime endDate =
-              DateTime.now().add(Duration(days: _selectedDueDate!));
+          DateTime.now().add(Duration(days: _selectedDueDate!));
           return dueDate.isBefore(endDate);
         }
       }).toList();
@@ -384,6 +385,21 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         return -1;
       }
       return itemADate.compareTo(itemBDate);
+    }
+  }
+
+  void messageListener(RemoteMessage event) {
+    Map<String, dynamic> data = event.data;
+    print(data);
+    String type = data["type"];
+    int itemId = int.parse(data["id"]);
+    if (type == "update" || type == "save") {
+      _itemService
+          .refreshItem(_items!, _expanded!, itemId)
+          .then((value) => setState(() {}));
+    } else if (type == "delete") {
+      _itemService.dropItemById(itemId, _items!, _expanded!);
+      setState(() {});
     }
   }
 }
