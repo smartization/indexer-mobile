@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:indexer_client/state.dart';
+import 'package:provider/provider.dart';
 
 import '../../api/api_spec.swagger.dart';
 import 'body/body_main.dart';
@@ -11,25 +13,15 @@ class ItemExpansionPanel extends ExpansionPanel {
       super.isExpanded,
       super.canTapOnHeader});
 
-  ItemExpansionPanel.from(
-      ItemDTO item,
-      bool isExpanded,
-      Function(ItemDTO) onItemDelete,
-      Function(ItemDTO) onEdit,
-      Function(int?, ItemDTO) onIncrement,
-      Function(int?, ItemDTO) onDecrement)
+  ItemExpansionPanel.from(ItemDTO item, BuildContext context)
       : this(
             headerBuilder: (ctx, isExpanded) => ItemExpansionPanelHeader(
                   item: item,
-                  isExpanded: isExpanded,
+                  isExpanded: Provider.of<AppState>(context, listen: false)
+                      .expanded![item]!,
                 ),
-            body: ItemExpansionPanelBody(
-              item: item,
-              onDelete: onItemDelete,
-              onEdit: onEdit,
-              onIncrement: (v) => onIncrement(v, item),
-              onDecrement: (v) => onDecrement(v, item),
-            ),
-            isExpanded: isExpanded,
+            body: ItemExpansionPanelBody(item: item),
+            isExpanded:
+                Provider.of<AppState>(context, listen: false).expanded![item]!,
             canTapOnHeader: true);
 }

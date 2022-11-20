@@ -2,6 +2,8 @@ import 'package:chopper/chopper.dart';
 import 'package:flutter/material.dart';
 import 'package:indexer_client/common/dto_service.dart';
 import 'package:indexer_client/common/exceptions/exception_resolver.dart';
+import 'package:indexer_client/state.dart';
+import 'package:provider/provider.dart';
 
 import '../api/api_spec.swagger.dart';
 import '../common/exceptions/ApiException.dart';
@@ -10,6 +12,11 @@ class ItemService extends DTOService {
   ExceptionResolver exceptionResolver;
 
   ItemService({required super.context, required this.exceptionResolver});
+
+  static ItemService getInstance(BuildContext context) {
+    ExceptionResolver exceptionResolver = ExceptionResolver(context: context);
+    return ItemService(context: context, exceptionResolver: exceptionResolver);
+  }
 
   Future<ItemDTO> getOneItem(int id) async {
     Response<ItemDTO> response = await getApi().itemsIdGet(id: id);
@@ -51,38 +58,50 @@ class ItemService extends DTOService {
     return resolveResponse(respomse) as List<ItemDTO>;
   }
 
-  Future<void> itemDeleteListener(
-      ItemDTO item, List<ItemDTO> items, Map<ItemDTO, bool> expanded) async {
+  Future<void> itemDeleteListener(ItemDTO item) async {
     await delete(item);
     try {
-      dropItem(item, items, expanded);
+      dropItem(item);
     } on ApiException catch (error) {
       exceptionResolver.resolveAndShow(error);
     }
   }
 
-  void dropItem(
-      ItemDTO item, List<ItemDTO> items, Map<ItemDTO, bool> expanded) {
-    int idx = items.indexOf(item);
-    if (idx >= 0) {
-      items.remove(item);
-      expanded.remove(item);
+  Future<void> loadAllItemsToState() async {
+    try {
+      List<ItemDTO> items = await getAllItems();
+      Provider.of<AppState>(context, listen: false).initItems(items);
+    } on ApiException catch (e) {
+      ExceptionResolver.getInstance(context).resolveAndShow(e);
     }
   }
 
-  void dropItemById(
-      int itemId, List<ItemDTO> items, Map<ItemDTO, bool> expanded) {
-    ItemDTO item = items.firstWhere((element) => element.id == itemId);
-    dropItem(item, items, expanded);
+  void dropItem(ItemDTO item) {
+    Provider.of<AppState>(context, listen: false).deleteItem(item);
+    Provider.of<AppState>(context, listen: false).deleteExpandForItem(item);
   }
 
-  Future<void> onItemEditedListener(Future<ItemDTO?> editedItem,
-      ItemDTO oldItem, List<ItemDTO> items, Map<ItemDTO, bool> expanded,
+  void dropItemById(int itemId) {
+    try {
+      List<ItemDTO> items =
+          Provider.of<AppState>(context, listen: false).items!;
+      ItemDTO item = items.firstWhere((element) => element.id == itemId);
+      dropItem(item);
+    } on StateError catch (e) {
+      // do nothing with it. It can happen if user delete some item, and backend
+      // will broadcast this information via FCM
+      // in such situation app will try to delete this item once more
+      // which is impossible
+    }
+  }
+
+  Future<void> onItemEditedListener(
+      Future<ItemDTO?> editedItem, ItemDTO oldItem,
       {showSaveNotification = true}) async {
     ItemDTO? item = await editedItem;
     try {
       if (item != null) {
-        swapItems(items, item, expanded, oldItem);
+        swapItems(item, oldItem);
         if (showSaveNotification) {
           ScaffoldMessenger.of(context)
               .showSnackBar(const SnackBar(content: Text("Saving")));
@@ -96,32 +115,37 @@ class ItemService extends DTOService {
     }
   }
 
-  void swapItems(List<ItemDTO> items, ItemDTO item, Map<ItemDTO, bool> expanded,
-      ItemDTO oldItem) {
-    int idx = items.indexOf(oldItem);
-    items.removeAt(idx);
-    items.insert(idx, item);
-    expanded[item] = expanded[oldItem]!;
-    expanded.remove(oldItem);
+  void swapItems(ItemDTO item, ItemDTO oldItem) {
+    if (item.hashCode != oldItem.hashCode) {
+      int idx =
+          Provider.of<AppState>(context, listen: false).deleteItem(oldItem);
+      Provider.of<AppState>(context, listen: false)
+          .addItemAtPosition(item, idx);
+      Provider.of<AppState>(context, listen: false)
+          .copyExpandedBetweenItems(oldItem, item);
+      Provider.of<AppState>(context, listen: false)
+          .deleteExpandForItem(oldItem);
+    }
   }
 
-  Future<void> saveAndUpdateList(ItemDTO newItem, ItemDTO oldItem,
-      List<ItemDTO> items, Map<ItemDTO, bool> expanded) async {
+  Future<void> saveAndUpdateList(ItemDTO newItem, ItemDTO oldItem) async {
     Future<ItemDTO> futureItem = updateItem(newItem);
-    return onItemEditedListener(futureItem, oldItem, items, expanded,
+    return onItemEditedListener(futureItem, oldItem,
         showSaveNotification: false);
   }
 
-  Future<void> refreshItem(
-      List<ItemDTO> items, Map<ItemDTO, bool> expanded, int itemId) async {
+  Future<void> refreshItem(int itemId) async {
     try {
       ItemDTO newItem = await getOneItem(itemId);
       try {
-        ItemDTO oldItem = items.firstWhere((element) => element.id == itemId);
-        swapItems(items, newItem, expanded, oldItem);
+        ItemDTO oldItem =
+            Provider.of<AppState>(context, listen: false).getItemById(itemId);
+        // Provider.of<AppState>(context, listen: false).addExpandedForItem(newItem);
+        swapItems(newItem, oldItem);
       } on StateError {
-        items.add(newItem);
-        expanded[newItem] = false;
+        Provider.of<AppState>(context, listen: false).addItem(newItem);
+        Provider.of<AppState>(context, listen: false)
+            .addExpandedForItem(newItem);
       }
     } on ApiException catch (error) {
       exceptionResolver.resolveAndShow(error);
