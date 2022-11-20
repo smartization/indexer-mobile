@@ -50,13 +50,13 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
     _itemService =
         ItemService(context: context, exceptionResolver: _exceptionResolver);
     FirebaseIntegration.initMessageListener(context);
+    FirebaseIntegration.startSyncingToken(context);
   }
 
   @override
   Widget build(BuildContext context) {
     // this token should be synced here as this is first place where
     // application has loaded net stack
-    FirebaseIntegration.syncToken(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Items"),
