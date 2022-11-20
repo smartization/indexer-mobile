@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:indexer_client/item/item_service.dart';
 import 'package:indexer_client/settings/server_address_text_field.dart';
 import 'package:indexer_client/state.dart';
 import 'package:provider/provider.dart';
@@ -71,10 +72,9 @@ class _SettingsMainState extends State<SettingsMain> {
   }
 
   void updateAppState(String serverAddress) {
-    setState(() {
-      Provider.of<AppState>(context, listen: false)
-          .updateServerAddress(serverAddress);
-    });
+    Provider.of<AppState>(context, listen: false)
+        .updateServerAddress(serverAddress);
+    ItemService.getInstance(context).loadAllItemsToState();
   }
 
   void _invalidateFcmToken() {

@@ -9,6 +9,10 @@ class ExceptionResolver {
 
   ExceptionResolver({required this.context});
 
+  static ExceptionResolver getInstance(BuildContext context) {
+    return ExceptionResolver(context: context);
+  }
+
   void resolveAndShow(Object exception) {
     if (exception is ApiException) {
       ApiException e = exception;

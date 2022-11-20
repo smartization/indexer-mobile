@@ -21,11 +21,6 @@ class BarcodeInput extends StatelessWidget {
       throw ArgumentError(
           "Both controller and initialValue set, only one is at a time is valid");
     }
-    if (initialValue != null) {
-      controller = TextEditingController(text: initialValue!);
-      controller?.selection =
-          TextSelection.collapsed(offset: initialValue!.length);
-    }
     if (controller != null) {
       controller?.selection =
           TextSelection.collapsed(offset: controller!.text.length);
@@ -39,6 +34,7 @@ class BarcodeInput extends StatelessWidget {
         Expanded(
           child: TextFormField(
             controller: controller,
+            initialValue: initialValue,
             decoration: InputDecoration(
                 labelText: "Barcode",
                 helperText: helperText ?? "",
@@ -61,6 +57,9 @@ class BarcodeInput extends StatelessWidget {
         '#ff6666', 'Cancel', true, ScanMode.BARCODE);
     if (controller != null) {
       controller!.text = barcodeScanRes;
+    }
+    if (initialValue != null) {
+      initialValue = barcodeScanRes;
     }
     onChanged!(barcodeScanRes);
   }

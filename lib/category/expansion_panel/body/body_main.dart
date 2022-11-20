@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:indexer_client/common/loading_indicator.dart';
-import 'package:indexer_client/item/barcode_service.dart';
-import 'package:indexer_client/item/item_service.dart';
+import 'package:indexer_client/state.dart';
+import 'package:provider/provider.dart';
 
 import '../../../api/api_spec.swagger.dart';
-import '../../../common/exceptions/exception_resolver.dart';
-import '../../../item/add/add_item_popup.dart';
 import '../../../item/item_expansion_list.dart';
 
 part 'bottom_buttons.dart';
