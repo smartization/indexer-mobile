@@ -1,7 +1,5 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:indexer_client/common/exceptions/exception_resolver.dart';
-import 'package:indexer_client/common/loading_indicator.dart';
 import 'package:indexer_client/item/add/add_item_popup.dart';
 import 'package:indexer_client/item/barcode_service.dart';
 import 'package:indexer_client/item/filter/item_order_bottom_sheet.dart';
@@ -24,10 +22,8 @@ class ItemMain extends StatefulWidget {
 }
 
 class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
-  Map<ItemDTO, bool>? _expanded;
   late ItemService _itemService;
   late BarcodeService _barcodeService;
-  late Future<List<ItemDTO>> _itemsFuture;
   late ExceptionResolver _exceptionResolver;
   late List<num> _selectedCategories;
   late List<num> _selectedPlaces;
@@ -53,18 +49,7 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
     _exceptionResolver = ExceptionResolver(context: context);
     _itemService =
         ItemService(context: context, exceptionResolver: _exceptionResolver);
-    _itemsFuture = _itemService.getAllItems();
-    FirebaseMessaging.onMessage.listen(messageListener);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    Provider.of<AppState>(context).addListener(() {
-      setState(() {
-        _itemsFuture = _itemService.getAllItems();
-      });
-    });
+    FirebaseIntegration.initMessageListener(context);
   }
 
   @override
@@ -76,9 +61,8 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
       appBar: AppBar(
         title: const Text("Items"),
       ),
-      body: FutureBuilder(
-        future: _itemsFuture,
-        builder: futureBuilder,
+      body: Consumer<AppState>(
+        builder: bodyBuilder,
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -99,45 +83,23 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
             ),
           ),
           FloatingActionButton(
-            onPressed: onOrderButtonPressed,
+            onPressed: _onOrderButtonPressed,
             tooltip: "Order item",
             child: const Icon(Icons.sort_by_alpha),
           )
         ],
       ),
       drawer:
-      const CommonDrawer(), // This trailing comma makes auto-formatting nicer for build methods.
+          const CommonDrawer(), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
-  void onExpanded(ItemDTO item, bool isExpanded) {
-    setState(() {
-      _expanded![item] = !isExpanded;
-    });
-  }
-
-  Widget futureBuilder(BuildContext context, AsyncSnapshot<List<ItemDTO>> snapshot) {
-    if (snapshot.hasData) {
-      _items = snapshot.data!;
-      // sets _expanded only for first data fetch from api
-      _expanded ??= _items!.asMap().map((key, value) => MapEntry(value, false));
-      return ItemExpansionList(
-        items: _sortItems(filterItems(_items)),
-        onExpanded: onExpanded,
-        onItemDelete: onItemDeleted,
-        onItemEdited: onItemEdited,
-        expanded: _expanded!,
-        onDecrement: onDecrementOrIncrement,
-        onIncrement: onDecrementOrIncrement,
-        onRefresh: onItemListRefresh,
-        refreshable: true,
-      );
-    } else if (snapshot.hasError) {
-      return Text("Error: ${snapshot.error.toString()}");
-    }
-    else {
-      return const LoadingIndicator(title: "Downloading items");
-    }
+  Widget bodyBuilder(BuildContext context, AppState appState, Widget? widget) {
+    _items = appState.items!;
+    return ItemExpansionList(
+      items: _sortItems(_filterItems(_items)),
+      refreshable: true,
+    );
   }
 
   void onAddButtonPressed() async {
@@ -154,12 +116,11 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
     );
     createdItem.then((value) {
       setState(() {
-        if (value != null) _items!.add(value);
-        // this will be processed by FutureBuilder so UI can be drawn
-        _itemsFuture = Future.value(_items);
-        // if some new item was added then it is as last item on list
-        // add it to _expanded register
-        _expanded!.putIfAbsent(value!, () => false);
+        if (value != null) {
+          Provider.of<AppState>(context, listen: false).addItem(value);
+          Provider.of<AppState>(context, listen: false)
+              .addExpandedForItem(value);
+        }
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text("Saving")));
       });
@@ -179,11 +140,11 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
           return Container(
             margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
             child: ItemSearchBottomSheet(
-              onNewSearchPhrase: searchBoxChanged,
-              onNewCategorySelected: onNewCategorySelected,
-              onNewPlaceSelected: onNewPlaceSelected,
-              onNewEan: onNewEan,
-              onNewDueDate: onNewDueDate,
+              onNewSearchPhrase: _searchBoxChanged,
+              onNewCategorySelected: _onNewCategorySelected,
+              onNewPlaceSelected: _onNewPlaceSelected,
+              onNewEan: _onNewEan,
+              onNewDueDate: _onNewDueDate,
               selectedCategories: _selectedCategories,
               selectedPlaces: _selectedPlaces,
               selectedSearchPhrase: _searchNamePhrase ?? "",
@@ -194,45 +155,17 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         });
   }
 
-  void onItemDeleted(ItemDTO item) {
-    _itemService
-        .itemDeleteListener(item, _items!, _expanded!)
-        .then((value) => setState(() {}));
-  }
-
-  onItemEdited(ItemDTO item) {
-    Future<ItemDTO?> editedItem = showDialog<ItemDTO>(
-        context: context,
-        builder: (ctx) => ModifyItemPopup(
-          itemService: _itemService,
-          barcodeService: _barcodeService,
-          exceptionResolver: _exceptionResolver,
-          addNew: false,
-          item: item,
-        ));
-    _itemService
-        .onItemEditedListener(editedItem, item, _items!, _expanded!)
-        .then((value) => setState(() {}));
-  }
-
-  onDecrementOrIncrement(int? value, ItemDTO item) {
-    ItemDTO newItem = $ItemDTOExtension(item).copyWith(quantity: value!);
-    _itemService
-        .saveAndUpdateList(newItem, item, _items!, _expanded!)
-        .then((value) => setState(() {}));
-  }
-
-  void searchBoxChanged(String value) {
+  _searchBoxChanged(String value) {
     setState(() => _searchNamePhrase = value);
   }
 
-  filterItems(List<ItemDTO>? items) {
+  _filterItems(List<ItemDTO>? items) {
     List<ItemDTO>? finalItems = items;
     if (_searchNamePhrase != null && _searchNamePhrase!.isNotEmpty) {
       finalItems = finalItems!
           .where((element) => element.name
-          .toLowerCase()
-          .contains(_searchNamePhrase!.toLowerCase()))
+              .toLowerCase()
+              .contains(_searchNamePhrase!.toLowerCase()))
           .toList(growable: true);
     }
     if (_selectedCategories.isNotEmpty) {
@@ -277,7 +210,7 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
     return finalItems;
   }
 
-  onNewCategorySelected(CategoryDTO category) {
+  _onNewCategorySelected(CategoryDTO category) {
     setState(() {
       if (_selectedCategories.contains(category.id)) {
         _selectedCategories.remove(category.id);
@@ -287,7 +220,7 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
     });
   }
 
-  onNewPlaceSelected(PlaceDTO place) {
+  _onNewPlaceSelected(PlaceDTO place) {
     setState(() {
       if (_selectedPlaces.contains(place.id)) {
         _selectedPlaces.remove(place.id);
@@ -297,22 +230,15 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
     });
   }
 
-  Future<void> onItemListRefresh() async {
-    _itemsFuture = _itemService.getAllItems();
-    _itemsFuture.then((value) => ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text("Reloaded"))));
-    setState(() {});
-  }
-
-  onNewEan(String newEan) {
+  _onNewEan(String newEan) {
     setState(() => _selectedEan = newEan);
   }
 
-  onNewDueDate(int newDueDate) {
+  _onNewDueDate(int newDueDate) {
     setState(() => _selectedDueDate = newDueDate);
   }
 
-  void onOrderButtonPressed() {
+  _onOrderButtonPressed() {
     showModalBottomSheet(
         context: context,
         shape: const RoundedRectangleBorder(
@@ -385,21 +311,6 @@ class _ItemMainState extends State<ItemMain> with TickerProviderStateMixin {
         return -1;
       }
       return itemADate.compareTo(itemBDate);
-    }
-  }
-
-  void messageListener(RemoteMessage event) {
-    Map<String, dynamic> data = event.data;
-    print(data);
-    String type = data["type"];
-    int itemId = int.parse(data["id"]);
-    if (type == "update" || type == "save") {
-      _itemService
-          .refreshItem(_items!, _expanded!, itemId)
-          .then((value) => setState(() {}));
-    } else if (type == "delete") {
-      _itemService.dropItemById(itemId, _items!, _expanded!);
-      setState(() {});
     }
   }
 }
