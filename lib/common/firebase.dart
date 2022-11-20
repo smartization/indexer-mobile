@@ -29,7 +29,7 @@ class FirebaseIntegration {
     );
   }
 
-  static void syncToken(BuildContext context) async {
+  static void startSyncingToken(BuildContext context) async {
     final String fcmToken =
         await FirebaseMessaging.instance.getToken() ?? "missing-new-token";
     DTOService dtoService = DTOService(context: context);
@@ -37,11 +37,10 @@ class FirebaseIntegration {
     String oldToken =
         sharedPreferences.getString(SettingsKeys.fcmToken.toString()) ??
             "missing-old-token";
-    if (oldToken != fcmToken) {
-      sharedPreferences.setString(SettingsKeys.fcmToken.toString(), fcmToken);
-      dtoService.getApi().firebaseTokenOldTokenUpdateNewTokenPatch(
-          oldToken: oldToken, newToken: fcmToken);
-    }
+    sharedPreferences.setString(SettingsKeys.fcmToken.toString(), fcmToken);
+    print("Syncing FCM token old: ${oldToken}, new token: ${fcmToken}");
+    dtoService.getApi().firebaseTokenOldTokenUpdateNewTokenPatch(
+        oldToken: oldToken, newToken: fcmToken);
   }
 
   static void initMessageListener(BuildContext context) {
