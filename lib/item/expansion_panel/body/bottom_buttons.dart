@@ -4,7 +4,8 @@ class _BottomButtons extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback onEdit;
 
-  const _BottomButtons({required this.onDelete, required this.onEdit});
+  const _BottomButtons(
+      {super.key, required this.onDelete, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
